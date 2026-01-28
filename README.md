@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🔥 Tenber
 
-## Getting Started
+**Where ideas survive on conviction, not clicks.**
 
-First, run the development server:
+> *In a world where AI can build anything, the real challenge is knowing what deserves to be built.*
 
+Tenber is a **Conviction Voting** platform for idea validation. Instead of "upvoting" (which is free and infinite), users must **stake** a limited budget of "Conviction Points" to keep ideas alive.
+
+If an idea isn't tended, it **decays** and eventually disappears.
+
+---
+
+## 🏗 Stack
+
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Database**: Supabase (PostgreSQL)
+- **Auth**: Supabase Auth
+- **Mechanic**: Lazy Decay (Vitality calculated on-read)
+
+## 🚀 Getting Started
+
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Environment Setup**:
+   Ensure you have a `.env.local` file with:
+   ```bash
+   NEXT_PUBLIC_SUPABASE_URL=...
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+   ```
+
+3. **Run Development Server**:
+   ```bash
+   npm run dev
+   ```
+
+## 🧪 Running Tests
+
+We have scripts to verify the mathematical mechanics:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npx tsx scripts/test-mechanics.ts
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 📂 Project Structure
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `src/app`: Next.js App Router pages
+- `src/components`: UI Components
+- `src/lib`: Core logic (`mechanics.ts`) and database clients
+- `scripts`: Verification scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 📜 Philosophy
 
-To learn more about Next.js, take a look at the following resources:
+**Why "Tenber"?**
+**Tend** (nurture) + **Ember** (fire) = **Tenber**.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Ideas are like embers. If you don't tend to them, they fade. If the community tends to them, they grow into a fire.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+License: MIT

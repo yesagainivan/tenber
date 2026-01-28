@@ -1,46 +1,29 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Idea, IdeaCard } from '@/components/IdeaCard';
-import { Flame } from 'lucide-react';
-
-// MOCK DATA
-const INITIAL_IDEAS: Idea[] = [
-    {
-        id: '1',
-        title: "Dark Mode for Dashboard",
-        description: "The current white theme is blinding at night. We need a proper dark mode with systematic color tokens.",
-        vitality: 92.5,
-        totalStaked: 120,
-    },
-    {
-        id: '2',
-        title: "Mobile App Notification Fix",
-        description: "Push notifications are delayed by 5-10 minutes on iOS. This is critical for real-time alerts.",
-        vitality: 45.0,
-        totalStaked: 60,
-    },
-    {
-        id: '3',
-        title: "Export to CSV",
-        description: "Allow users to export their project data to a CSV file for external analysis.",
-        vitality: 8.5,
-        totalStaked: 10,
-    }
-];
+import { Flame, Loader2, LogIn, LogOut, User as UserIcon } from 'lucide-react';
+import { getIdeas } from '@/lib/db';
+import { useAuth } from '@/context/AuthContext';
+import Link from 'next/link';
 
 export default function Home() {
-    const [ideas, setIdeas] = useState<Idea[]>(INITIAL_IDEAS);
+    const { user, signOut } = useAuth();
+    const [ideas, setIdeas] = useState<Idea[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function load() {
+            const data = await getIdeas();
+            setIdeas(data);
+            setLoading(false);
+        }
+        load();
+    }, []);
 
     const handleStake = (id: string, amount: number) => {
         console.log(`Staking ${amount} on ${id}`);
-        // In reality, this would trigger a DB transaction + Vitality Recalc
-        // For mock, we just loose-bump the numbers
-        setIdeas(prev => prev.map(idea =>
-            idea.id === id
-                ? { ...idea, vitality: Math.min(idea.vitality + 5, 200), totalStaked: idea.totalStaked + amount }
-                : idea
-        ).sort((a, b) => b.vitality - a.vitality));
+        // TODO: Implement actual staking
     };
 
     return (
@@ -56,10 +39,31 @@ export default function Home() {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <div className="text-sm text-zinc-400">
-                            Budget: <span className="font-mono text-orange-400 font-bold">80</span>/100
-                        </div>
-                        <div className="w-8 h-8 rounded-full bg-zinc-800 border border-white/10" />
+                        {user ? (
+                            <>
+                                <div className="text-sm text-zinc-400 hidden sm:block">
+                                    Budget: <span className="font-mono text-orange-400 font-bold">100</span>/100
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center text-zinc-400">
+                                        <UserIcon size={14} />
+                                    </div>
+                                    <button
+                                        onClick={() => signOut()}
+                                        className="text-xs text-zinc-500 hover:text-white transition-colors"
+                                    >
+                                        <LogOut size={16} />
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <Link
+                                href="/login"
+                                className="flex items-center gap-2 px-4 py-2 bg-zinc-100 hover:bg-white text-zinc-950 rounded-lg text-sm font-bold transition-all"
+                            >
+                                Sign In <LogIn size={14} />
+                            </Link>
+                        )}
                     </div>
                 </div>
             </header>
@@ -72,13 +76,23 @@ export default function Home() {
                 </div>
 
                 <div className="grid gap-4">
-                    {ideas.map(idea => (
-                        <IdeaCard
-                            key={idea.id}
-                            idea={idea}
-                            onStake={(amt) => handleStake(idea.id, amt)}
-                        />
-                    ))}
+                    {loading ? (
+                        <div className="flex justify-center py-20 text-zinc-500 gap-2">
+                            <Loader2 className="animate-spin" /> Loading ideas...
+                        </div>
+                    ) : ideas.length === 0 ? (
+                        <div className="text-center py-20 text-zinc-500 border border-dashed border-zinc-800 rounded-xl">
+                            No ideas yet. Be the first to kindle one!
+                        </div>
+                    ) : (
+                        ideas.map(idea => (
+                            <IdeaCard
+                                key={idea.id}
+                                idea={idea}
+                                onStake={(amt) => handleStake(idea.id, amt)}
+                            />
+                        ))
+                    )}
                 </div>
             </div>
         </main>
