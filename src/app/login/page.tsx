@@ -26,7 +26,7 @@ export default function LoginPage() {
     };
 
     return (
-        <main className="min-h-screen grid places-items-center bg-zinc-950 px-6">
+        <main className="min-h-screen flex flex-col items-center justify-center bg-zinc-950 px-6">
             <div className="w-full max-w-md space-y-8">
                 {/* Brand */}
                 <div className="flex flex-col items-center gap-4 text-center">
@@ -68,8 +68,8 @@ export default function LoginPage() {
                     {/* Messages */}
                     {message && (
                         <div className={`mt-6 p-4 rounded-lg text-sm border ${message.type === 'success'
-                                ? 'bg-emerald-950/30 border-emerald-900 text-emerald-400'
-                                : 'bg-red-950/30 border-red-900 text-red-400'
+                            ? 'bg-emerald-950/30 border-emerald-900 text-emerald-400'
+                            : 'bg-red-950/30 border-red-900 text-red-400'
                             }`}>
                             {message.text}
                         </div>

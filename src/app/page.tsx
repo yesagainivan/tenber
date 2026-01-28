@@ -2,15 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { Idea, IdeaCard } from '@/components/IdeaCard';
-import { Flame, Loader2, LogIn, LogOut, User as UserIcon } from 'lucide-react';
+import { Flame, Loader2, LogIn, LogOut, User as UserIcon, Plus } from 'lucide-react';
 import { getIdeas } from '@/lib/db';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
+import { Modal } from '@/components/Modal';
+import { CreateIdeaForm } from '@/components/CreateIdeaForm';
 
 export default function Home() {
     const { user, signOut } = useAuth();
     const [ideas, setIdeas] = useState<Idea[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
 
     useEffect(() => {
         async function load() {
@@ -20,6 +23,15 @@ export default function Home() {
         }
         load();
     }, []);
+
+    const handleSuccess = async () => {
+        setIsCreateOpen(false);
+        setLoading(true);
+        // Refresh list
+        const data = await getIdeas();
+        setIdeas(data);
+        setLoading(false);
+    };
 
     const handleStake = (id: string, amount: number) => {
         console.log(`Staking ${amount} on ${id}`);
@@ -45,6 +57,12 @@ export default function Home() {
                                     Budget: <span className="font-mono text-orange-400 font-bold">100</span>/100
                                 </div>
                                 <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={() => setIsCreateOpen(true)}
+                                        className="flex items-center gap-2 px-3 py-1.5 bg-orange-600/10 text-orange-400 hover:bg-orange-600 hover:text-white rounded-lg text-sm font-medium transition-colors"
+                                    >
+                                        <Plus size={16} /> Kindle Idea
+                                    </button>
                                     <div className="w-8 h-8 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center text-zinc-400">
                                         <UserIcon size={14} />
                                     </div>
@@ -95,6 +113,10 @@ export default function Home() {
                     )}
                 </div>
             </div>
+
+            <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Kindle a New Idea">
+                <CreateIdeaForm onSuccess={handleSuccess} />
+            </Modal>
         </main>
     );
 }
