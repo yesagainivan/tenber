@@ -2,7 +2,7 @@ import { supabase } from './supabase';
 import { calculateVitality, DecayState } from './mechanics';
 import { Idea } from '@/components/IdeaCard';
 
-export async function getIdeas(): Promise<Idea[]> {
+export async function getIdeas(userId?: string): Promise<Idea[]> {
     // 1. Fetch raw ideas from DB
     const { data, error } = await supabase
         .from('ideas')
@@ -12,6 +12,21 @@ export async function getIdeas(): Promise<Idea[]> {
     if (error) {
         console.error('Error fetching ideas:', error);
         return [];
+    }
+
+    // 1.5 Fetch User Stakes if logged in
+    let userStakes: Record<string, number> = {};
+    if (userId) {
+        const { data: stakes } = await supabase
+            .from('stakes')
+            .select('idea_id, amount')
+            .eq('user_id', userId);
+
+        if (stakes) {
+            stakes.forEach(s => {
+                userStakes[s.idea_id] = s.amount;
+            });
+        }
     }
 
     // 2. Client-side Lazy Decay Calculation
@@ -34,10 +49,29 @@ export async function getIdeas(): Promise<Idea[]> {
             description: row.description,
             vitality: freshVitality,
             totalStaked: row.total_staked,
-            // userStake: 0 // TODO: Fetch user specific stake
+            userStake: userStakes[row.id] || 0
         };
     });
 
     // 3. Re-sort based on fresh vitality
     return ideas.sort((a, b) => b.vitality - a.vitality);
+}
+
+export async function getRemainingBudget(userId?: string): Promise<number> {
+    if (!userId) return 0;
+
+    // 1. Get total used
+    const { data: stakes } = await supabase
+        .from('stakes')
+        .select('amount')
+        .eq('user_id', userId);
+
+    const used = stakes?.reduce((sum, s) => sum + s.amount, 0) || 0;
+
+    // 2. Get total available (hardcoded 100 for now, or fetch from profile)
+    // const { data: profile } = await supabase.from('profiles').select('conviction_budget').eq('id', userId).single();
+    // const budget = profile?.conviction_budget || 100;
+    const budget = 100;
+
+    return Math.max(0, budget - used);
 }

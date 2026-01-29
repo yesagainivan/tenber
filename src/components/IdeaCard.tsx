@@ -1,30 +1,25 @@
 
 import React from 'react';
-import { getVitalityStatus } from '@/lib/mechanics';
-import { Flame, ArrowUp } from 'lucide-react';
+import { getVitalityStatus, Idea } from '@/lib/mechanics';
+import { Flame } from 'lucide-react';
+import { ConvictionSlider } from './ConvictionSlider';
 
-export interface Idea {
-    id: string;
-    title: string;
-    description: string;
-    vitality: number; // Calculated on read
-    totalStaked: number; // The "Target"
-    userStake?: number; // What the current user has put in
-}
+export type { Idea }; // Re-export for page.tsx
 
 interface IdeaCardProps {
     idea: Idea;
-    onStake: (amount: number) => void;
+    userBudget: number;
+    onStake: (amount: number) => Promise<void>;
 }
 
-export function IdeaCard({ idea, onStake }: IdeaCardProps) {
+export function IdeaCard({ idea, userBudget, onStake }: IdeaCardProps) {
     const status = getVitalityStatus(idea.vitality);
 
     const statusColors = {
         blazing: "text-orange-500 from-orange-500/20 to-orange-500/5",
         burning: "text-amber-500 from-amber-500/20 to-amber-500/5",
-        fading: "text-slate-500 from-slate-500/20 to-slate-500/5",
-        extinguished: "text-gray-300 from-gray-500/10 to-transparent",
+        smoldering: "text-rose-500 from-rose-500/20 to-rose-500/5",
+        dying: "text-zinc-600 from-zinc-500/10 to-transparent",
     };
 
     return (
@@ -51,16 +46,24 @@ export function IdeaCard({ idea, onStake }: IdeaCardProps) {
             <div className="mt-6 flex items-center justify-between border-t border-white/5 pt-4">
                 <div className="flex flex-col">
                     <span className="text-xs text-zinc-500">Total Conviction</span>
-                    <span className="font-mono text-zinc-300">{idea.totalStaked} pts</span>
+                    <span className="font-mono text-zinc-300">{idea.totalStaked.toFixed(0)} pts</span>
                 </div>
 
-                {/* Action (Mock Staking) */}
-                <button
-                    onClick={() => onStake(10)}
-                    className="flex items-center gap-2 px-4 py-2 bg-zinc-100 text-zinc-950 rounded-lg text-sm font-medium hover:bg-white transition-colors"
-                >
-                    <ArrowUp size={16} /> Stake
-                </button>
+                <div className="flex items-center gap-4">
+                    {/* User's current stake if any */}
+                    {idea.userStake ? (
+                        <div className="text-xs text-emerald-400 font-mono flex items-center gap-1">
+                            You: <span className="font-bold">{idea.userStake}</span>
+                        </div>
+                    ) : null}
+
+                    <ConvictionSlider
+                        ideaId={idea.id}
+                        initialStake={idea.userStake || 0}
+                        userBudget={userBudget}
+                        onStake={onStake}
+                    />
+                </div>
             </div>
         </div>
     );

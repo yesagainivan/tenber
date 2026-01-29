@@ -1,60 +1,46 @@
-/**
- * Tenber Core Mechanics
- * 
- * Logic for "Lazy Decay" and Vitality calculation.
- * 
- * Formula:
- * Vitality decays exponentially from its last known value towards the "Target Level" (Total Staked).
- * V(t) = S + (V(t0) - S) * e^(-λ * dt)
- * 
- * where:
- * S = Total Staked Conviction (The "Sustainability Level")
- * V(t0) = Vitality at last update
- * dt = Time elapsed in hours (or arbitrary time units)
- * λ (Lambda) = Decay constant (how fast it adjusts)
- */
+import { supabase } from './supabase';
 
-import { differenceInMilliseconds } from 'date-fns';
-
-// DECAY_CONSTANT (Lambda)
-// Higher = faster decay.
-// 0.1 means ~10% gap closure per unit time.
-// Let's Calibrate: We want ideas to react meaningfully in hours, not seconds.
-// If unit is HOURS.
-export const DECAY_CONSTANT = 0.5; // Half-life approx 1.4 hours
+export interface Idea {
+    id: string;
+    title: string;
+    description: string;
+    vitality: number;
+    totalStaked: number;
+    userStake?: number;
+}
 
 export interface DecayState {
-    total_staked: number;        // S
-    vitality_at_last_update: number; // V(t0)
-    last_decay_update: Date;     // t0
+    total_staked: number;
+    vitality_at_last_update: number;
+    last_decay_update: Date;
 }
 
-/**
- * Calculates the current vitality of an idea based on its last known state and current time.
- */
-export function calculateVitality(state: DecayState, now: Date = new Date()): number {
-    const { total_staked: S, vitality_at_last_update: V_t0, last_decay_update: t0 } = state;
+// Half-life of 12 hours? 
+// N(t) = N0 * (1/2)^(t / t_half)
+const HALF_LIFE_HOURS = 12;
 
-    // 1. Calculate elapsed time (dt) in HOURS
-    const elapsedMs = differenceInMilliseconds(now, t0);
-    const elapsedHours = elapsedMs / (1000 * 60 * 60);
+export function calculateVitality(state: DecayState, now: Date): number {
+    const elapsedHours = (now.getTime() - state.last_decay_update.getTime()) / (1000 * 60 * 60);
 
-    if (elapsedHours <= 0) return V_t0;
+    // Lazy Decay Formula:
+    // Vitality tends towards Total Staked over time.
+    // If V > S, it decays down.
+    // If V < S, it grows up (if staked).
 
-    // 2. Apply Formula: V(t) = S + (V(t0) - S) * e^(-λ * dt)
-    const decayFactor = Math.exp(-DECAY_CONSTANT * elapsedHours);
-    const currentVitality = S + (V_t0 - S) * decayFactor;
+    // Simple Exponential Decay towards Target (S)
+    // V(t) = S + (V0 - S) * e^(-lambda * t)
 
-    // Round to 2 decimal places for sanity
-    return Math.round(currentVitality * 100) / 100;
+    const lambda = Math.log(2) / HALF_LIFE_HOURS; // Decay constant
+    const currentParam = Math.exp(-lambda * elapsedHours);
+
+    const currentVitality = state.total_staked + (state.vitality_at_last_update - state.total_staked) * currentParam;
+
+    return Math.max(0, currentVitality);
 }
 
-/**
- * Returns the text status of an idea based on vitality
- */
-export function getVitalityStatus(vitality: number): 'blazing' | 'burning' | 'fading' | 'extinguished' {
+export function getVitalityStatus(vitality: number): 'blazing' | 'burning' | 'smoldering' | 'dying' {
     if (vitality > 80) return 'blazing';
     if (vitality > 50) return 'burning';
-    if (vitality > 10) return 'fading';
-    return 'extinguished';
+    if (vitality > 20) return 'smoldering';
+    return 'dying';
 }

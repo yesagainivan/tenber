@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Idea, IdeaCard } from '@/components/IdeaCard';
 import { Flame, Loader2, LogIn, LogOut, User as UserIcon, Plus } from 'lucide-react';
-import { getIdeas } from '@/lib/db';
+import { getIdeas, getRemainingBudget } from '@/lib/db';
+import { stakeIdea } from '@/lib/actions'; // Import action
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import { Modal } from '@/components/Modal';
@@ -12,30 +13,57 @@ import { CreateIdeaForm } from '@/components/CreateIdeaForm';
 export default function Home() {
     const { user, signOut } = useAuth();
     const [ideas, setIdeas] = useState<Idea[]>([]);
+    const [budget, setBudget] = useState(0);
     const [loading, setLoading] = useState(true);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
 
     useEffect(() => {
         async function load() {
-            const data = await getIdeas();
+            setLoading(true);
+            const data = await getIdeas(user?.id);
             setIdeas(data);
+
+            if (user) {
+                const b = await getRemainingBudget(user.id);
+                setBudget(b);
+            }
+
             setLoading(false);
         }
         load();
-    }, []);
+    }, [user?.id]); // Reload when user changes
 
     const handleSuccess = async () => {
         setIsCreateOpen(false);
         setLoading(true);
         // Refresh list
-        const data = await getIdeas();
+        const data = await getIdeas(user?.id);
         setIdeas(data);
+
+        if (user) {
+            const b = await getRemainingBudget(user.id);
+            setBudget(b);
+        }
+
         setLoading(false);
     };
 
-    const handleStake = (id: string, amount: number) => {
-        console.log(`Staking ${amount} on ${id}`);
-        // TODO: Implement actual staking
+    const handleStake = async (id: string, amount: number) => {
+        try {
+            await stakeIdea(id, amount);
+            // Optimistic update or refetch?
+            // Re-fetch for accuracy for now (MVP)
+            const data = await getIdeas(user?.id);
+            setIdeas(data);
+
+            if (user) {
+                const b = await getRemainingBudget(user.id);
+                setBudget(b);
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Failed to stake (Check budget)");
+        }
     };
 
     return (
@@ -54,7 +82,7 @@ export default function Home() {
                         {user ? (
                             <>
                                 <div className="text-sm text-zinc-400 hidden sm:block">
-                                    Budget: <span className="font-mono text-orange-400 font-bold">100</span>/100
+                                    Budget: <span className="font-mono text-orange-400 font-bold">{budget}</span>/100
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <button
@@ -107,6 +135,7 @@ export default function Home() {
                             <IdeaCard
                                 key={idea.id}
                                 idea={idea}
+                                userBudget={budget}
                                 onStake={(amt) => handleStake(idea.id, amt)}
                             />
                         ))
