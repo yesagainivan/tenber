@@ -6,12 +6,14 @@ import { Flame, Loader2, LogIn, LogOut, User as UserIcon, Plus } from 'lucide-re
 import { getIdeas, getRemainingBudget } from '@/lib/db';
 import { stakeIdea } from '@/lib/actions'; // Import action
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/components/Toast';
 import Link from 'next/link';
 import { Modal } from '@/components/Modal';
 import { CreateIdeaForm } from '@/components/CreateIdeaForm';
 
 export default function Home() {
     const { user, signOut } = useAuth();
+    const { addToast } = useToast();
     const [ideas, setIdeas] = useState<Idea[]>([]);
     const [budget, setBudget] = useState(0);
     const [loading, setLoading] = useState(true);
@@ -48,6 +50,7 @@ export default function Home() {
         setLoading(false);
     };
 
+
     const handleStake = async (id: string, amount: number) => {
         try {
             await stakeIdea(id, amount);
@@ -60,9 +63,9 @@ export default function Home() {
                 const b = await getRemainingBudget(user.id);
                 setBudget(b);
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
-            alert("Failed to stake (Check budget)");
+            addToast(e.message || "Failed to stake", 'error');
         }
     };
 
@@ -87,7 +90,7 @@ export default function Home() {
                                 <div className="flex items-center gap-3">
                                     <button
                                         onClick={() => setIsCreateOpen(true)}
-                                        className="flex items-center gap-2 px-3 py-1.5 bg-orange-600/10 text-orange-400 hover:bg-orange-600 hover:text-white rounded-lg text-sm font-medium transition-colors"
+                                        className="flex items-center gap-2 px-3 py-1.5 bg-orange-600/10 text-orange-400 hover:bg-orange-600 hover:text-white rounded-lg text-sm font-medium transition-colors cursor-pointer"
                                     >
                                         <Plus size={16} /> Kindle Idea
                                     </button>
@@ -96,7 +99,7 @@ export default function Home() {
                                     </div>
                                     <button
                                         onClick={() => signOut()}
-                                        className="text-xs text-zinc-500 hover:text-white transition-colors"
+                                        className="text-xs text-zinc-500 hover:text-white transition-colors cursor-pointer"
                                     >
                                         <LogOut size={16} />
                                     </button>

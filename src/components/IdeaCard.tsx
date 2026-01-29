@@ -25,7 +25,7 @@ export function IdeaCard({ idea, userBudget, onStake }: IdeaCardProps) {
     return (
         <div className={`group relative p-6 rounded-xl border border-white/5 bg-zinc-900 overflow-hidden transition-all hover:border-white/10`}>
             {/* Vitality Background Gradient */}
-            <div className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity ${statusColors[status]}`} />
+            <div className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none ${statusColors[status]}`} />
 
             <div className="relative flex justify-between items-start gap-4">
                 <div className="flex-1">
