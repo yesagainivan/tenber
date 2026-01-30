@@ -9,6 +9,7 @@ interface AuthContextType {
     user: User | null;
     session: Session | null;
     loading: boolean;
+    profile: { username: string | null; avatar_url: string | null } | null;
     signIn: (email: string) => Promise<any>;
     signOut: () => Promise<void>;
 }
@@ -21,23 +22,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
+    const [profile, setProfile] = useState<{ username: string | null; avatar_url: string | null } | null>(null);
+
     useEffect(() => {
         // 1. Get initial session
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
             setUser(session?.user ?? null);
-            setLoading(false);
+            if (session?.user) fetchProfile(session.user.id);
+            else setLoading(false);
         });
 
         // 2. Listen for changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
             setUser(session?.user ?? null);
-            setLoading(false);
+            if (session?.user) fetchProfile(session.user.id);
+            else {
+                setProfile(null);
+                setLoading(false);
+            }
         });
 
         return () => subscription.unsubscribe();
     }, []);
+
+    const fetchProfile = async (userId: string) => {
+        const { data } = await supabase
+            .from('profiles')
+            .select('username, avatar_url')
+            .eq('id', userId)
+            .single();
+        setProfile(data);
+        setLoading(false);
+    };
 
     const signIn = async (email: string) => {
         // Using Magic Link for MVP (Simplest, no password management)
@@ -55,7 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, session, loading, signIn, signOut }}>
+        <AuthContext.Provider value={{ user, session, loading, profile, signIn, signOut }}>
             {children}
         </AuthContext.Provider>
     );

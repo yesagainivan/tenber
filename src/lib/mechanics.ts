@@ -7,6 +7,10 @@ export interface Idea {
     vitality: number;
     totalStaked: number;
     userStake?: number;
+    author?: {
+        username: string | null;
+        avatar_url: string | null;
+    };
 }
 
 export interface DecayState {

@@ -12,7 +12,7 @@ import { Modal } from '@/components/Modal';
 import { CreateIdeaForm } from '@/components/CreateIdeaForm';
 
 export default function Home() {
-    const { user, signOut } = useAuth();
+    const { user, profile, signOut } = useAuth();
     const { addToast } = useToast();
     const [ideas, setIdeas] = useState<Idea[]>([]);
     const [budget, setBudget] = useState(0);
@@ -94,9 +94,16 @@ export default function Home() {
                                     >
                                         <Plus size={16} /> Kindle Idea
                                     </button>
-                                    <div className="w-8 h-8 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center text-zinc-400">
-                                        <UserIcon size={14} />
-                                    </div>
+                                    <Link
+                                        href={profile?.username ? `/u/${profile.username}` : "/settings"}
+                                        className="w-8 h-8 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/30 transition-all"
+                                    >
+                                        {profile?.avatar_url ? (
+                                            <img src={profile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
+                                        ) : (
+                                            <UserIcon size={14} />
+                                        )}
+                                    </Link>
                                     <button
                                         onClick={() => signOut()}
                                         className="text-xs text-zinc-500 hover:text-white transition-colors cursor-pointer"

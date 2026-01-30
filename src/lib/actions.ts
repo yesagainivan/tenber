@@ -88,3 +88,33 @@ export async function stakeIdea(ideaId: string, amount: number) {
 
     revalidatePath('/');
 }
+
+export async function updateProfile(formData: FormData) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Unauthorized');
+
+    const username = formData.get('username') as string;
+    const bio = formData.get('bio') as string;
+
+    // Validate username (simple regex: alphanumeric, underscores, 3-20 chars)
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    if (!usernameRegex.test(username)) {
+        return { error: 'Username must be 3-20 characters, alphanumeric or underscores.' };
+    }
+
+    const { error } = await supabase
+        .from('profiles')
+        .update({ username, bio })
+        .eq('id', user.id);
+
+    if (error) {
+        if (error.code === '23505') { // Unique violation
+            return { error: 'Username already taken.' };
+        }
+        return { error: 'Failed to update profile.' };
+    }
+
+    revalidatePath('/settings');
+    return { success: true };
+}

@@ -3,6 +3,7 @@ import React from 'react';
 import { getVitalityStatus, Idea } from '@/lib/mechanics';
 import { Flame } from 'lucide-react';
 import { ConvictionSlider } from './ConvictionSlider';
+import Link from 'next/link';
 
 export type { Idea }; // Re-export for page.tsx
 
@@ -29,7 +30,17 @@ export function IdeaCard({ idea, userBudget, onStake }: IdeaCardProps) {
 
             <div className="relative flex justify-between items-start gap-4">
                 <div className="flex-1">
-                    <h3 className="text-xl font-medium text-zinc-100">{idea.title}</h3>
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-xl font-medium text-zinc-100">{idea.title}</h3>
+                        {idea.author?.username && (
+                            <Link
+                                href={`/u/${idea.author.username}`}
+                                className="text-xs text-zinc-500 hover:text-orange-400 transition-colors"
+                            >
+                                @{idea.author.username}
+                            </Link>
+                        )}
+                    </div>
                     <p className="mt-2 text-zinc-400 text-sm leading-relaxed">{idea.description}</p>
                 </div>
 
