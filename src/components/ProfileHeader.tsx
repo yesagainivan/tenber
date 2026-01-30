@@ -1,4 +1,5 @@
-import { User } from 'lucide-react';
+import { User, Settings } from 'lucide-react';
+import Link from 'next/link';
 
 interface ProfileHeaderProps {
     username: string;
@@ -6,11 +7,22 @@ interface ProfileHeaderProps {
     avatarUrl: string | null;
     reputation: number;
     stakedCount: number;
+    isOwner?: boolean;
 }
 
-export function ProfileHeader({ username, bio, avatarUrl, reputation, stakedCount }: ProfileHeaderProps) {
+export function ProfileHeader({ username, bio, avatarUrl, reputation, stakedCount, isOwner }: ProfileHeaderProps) {
     return (
-        <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-8 text-center space-y-4">
+        <div className="relative bg-zinc-900/50 border border-zinc-800 rounded-2xl p-8 text-center space-y-4">
+            {isOwner && (
+                <Link
+                    href="/settings"
+                    className="absolute top-4 right-4 p-2 text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"
+                    title="Edit Profile"
+                >
+                    <Settings size={18} />
+                </Link>
+            )}
+
             <div className="w-24 h-24 mx-auto bg-zinc-800 rounded-full flex items-center justify-center border-4 border-zinc-950 shadow-xl overflow-hidden">
                 {avatarUrl ? (
                     <img src={avatarUrl} alt={username} className="w-full h-full object-cover" />

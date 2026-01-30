@@ -1,3 +1,5 @@
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -25,6 +27,33 @@ export default async function ProfilePage({ params }: Props) {
         notFound();
     }
 
+    // Check ownership
+    const cookieStore = await cookies();
+    const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            cookies: {
+                getAll() {
+                    return cookieStore.getAll();
+                },
+                setAll(cookiesToSet) {
+                    try {
+                        cookiesToSet.forEach(({ name, value, options }) =>
+                            cookieStore.set(name, value, options)
+                        )
+                    } catch {
+                        // The `setAll` method was called from a Server Component.
+                        // This can be ignored if you have middleware refreshing
+                        // user sessions.
+                    }
+                },
+            },
+        }
+    );
+    const { data: { user } } = await supabase.auth.getUser();
+    const isOwner = user?.id === profile.id;
+
     const stakedIdeas = await getUserStakedIdeas(profile.id);
 
     return (
@@ -40,6 +69,7 @@ export default async function ProfilePage({ params }: Props) {
                     avatarUrl={profile.avatar_url}
                     reputation={profile.reputation}
                     stakedCount={stakedIdeas.length}
+                    isOwner={isOwner}
                 />
 
                 <div className="space-y-4">
