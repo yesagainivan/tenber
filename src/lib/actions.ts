@@ -120,7 +120,7 @@ export async function updateProfile(formData: FormData) {
     return { success: true };
 }
 
-export async function addComment(ideaId: string, content: string) {
+export async function addComment(ideaId: string, content: string, parentId?: string) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Unauthorized');
@@ -132,7 +132,8 @@ export async function addComment(ideaId: string, content: string) {
     const { error } = await supabase.from('comments').insert({
         idea_id: ideaId,
         user_id: user.id,
-        content: content.trim()
+        content: content.trim(),
+        parent_id: parentId || null // Explicitly handle undefined -> null
     });
 
     if (error) {

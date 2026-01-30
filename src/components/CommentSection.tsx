@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { MessageSquare, Send, Loader2, Trash2 } from 'lucide-react';
+import { MessageSquare, Send, Loader2 } from 'lucide-react';
 import { addComment, fetchComments, deleteComment } from '@/lib/actions';
 import { Comment } from '@/lib/db';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from './Toast';
 import Link from 'next/link';
-import { formatDistanceToNow } from 'date-fns';
+import { ConfirmationModal } from './ConfirmationModal';
+import { CommentItem } from './CommentItem';
 
 export function CommentSection({ ideaId, totalComments }: { ideaId: string, totalComments?: number }) {
     const { user, profile } = useAuth();
@@ -16,7 +17,8 @@ export function CommentSection({ ideaId, totalComments }: { ideaId: string, tota
     const [comments, setComments] = useState<Comment[]>([]);
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
-    const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+    const [deletingId, setDeletingId] = useState<string | null>(null); // Kept for spinner if needed, though handled by modal + optim
     const [newComment, setNewComment] = useState('');
     const [hasLoaded, setHasLoaded] = useState(false);
 
@@ -26,15 +28,19 @@ export function CommentSection({ ideaId, totalComments }: { ideaId: string, tota
 
         if (nextState && !hasLoaded) {
             setLoading(true);
-            try {
-                const data = await fetchComments(ideaId);
-                setComments(data);
-                setHasLoaded(true);
-            } catch (e) {
-                console.error(e);
-            } finally {
-                setLoading(false);
-            }
+            refreshComments();
+        }
+    };
+
+    const refreshComments = async () => {
+        try {
+            const data = await fetchComments(ideaId);
+            setComments(data);
+            setHasLoaded(true);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -51,6 +57,7 @@ export function CommentSection({ ideaId, totalComments }: { ideaId: string, tota
                 id: Math.random().toString(),
                 content: newComment,
                 created_at: new Date().toISOString(),
+                parent_id: null,
                 author: {
                     username: profile?.username || 'You',
                     avatar_url: profile?.avatar_url || null
@@ -61,7 +68,7 @@ export function CommentSection({ ideaId, totalComments }: { ideaId: string, tota
             setNewComment('');
 
             // Re-fetch
-            fetchComments(ideaId).then(setComments);
+            refreshComments();
 
         } catch (e) {
             addToast('Failed to post comment', 'error');
@@ -70,13 +77,15 @@ export function CommentSection({ ideaId, totalComments }: { ideaId: string, tota
         }
     };
 
-    const handleDelete = async (commentId: string) => {
-        if (!confirm('Are you sure you want to delete this comment?')) return;
+    const handleDelete = async () => {
+        if (!confirmDeleteId) return;
+        const id = confirmDeleteId;
+        setConfirmDeleteId(null);
+        setDeletingId(id);
 
-        setDeletingId(commentId);
         try {
-            await deleteComment(commentId);
-            setComments(prev => prev.filter(c => c.id !== commentId));
+            await deleteComment(id);
+            setComments(prev => prev.filter(c => c.id !== id));
             addToast('Comment deleted', 'success');
         } catch (e) {
             addToast('Failed to delete comment', 'error');
@@ -84,6 +93,10 @@ export function CommentSection({ ideaId, totalComments }: { ideaId: string, tota
             setDeletingId(null);
         }
     };
+
+    // Organize comments into threads
+    const topLevelComments = comments.filter(c => !c.parent_id);
+    const getReplies = (parentId: string) => comments.filter(c => c.parent_id === parentId);
 
     return (
         <div className="w-full">
@@ -96,53 +109,8 @@ export function CommentSection({ ideaId, totalComments }: { ideaId: string, tota
             </button>
 
             {isOpen && (
-                <div className="mt-4 space-y-4 border-t border-white/5 pt-4 animate-in fade-in slide-in-from-top-2 duration-200">
-                    {/* List */}
-                    <div className="space-y-4 max-h-60 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-zinc-800">
-                        {loading ? (
-                            <div className="flex justify-center py-4 text-zinc-600">
-                                <Loader2 size={16} className="animate-spin" />
-                            </div>
-                        ) : comments.length === 0 ? (
-                            <div className="text-center py-4 text-zinc-600 text-sm italic">
-                                No thoughts yet. Share yours?
-                            </div>
-                        ) : (
-                            comments.map(comment => (
-                                <div key={comment.id} className="group flex gap-3 text-sm animate-in fade-in duration-300">
-                                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-zinc-800 overflow-hidden mt-1">
-                                        {comment.author.avatar_url ? <img src={comment.author.avatar_url} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-700" />}
-                                    </div>
-                                    <div className="flex-1 space-y-1">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <Link href={comment.author.username ? `/u/${comment.author.username}` : '#'} className="font-bold text-zinc-300 text-xs hover:text-white transition-colors">
-                                                    @{comment.author.username || 'anon'}
-                                                </Link>
-                                                <span className="text-zinc-600 text-[10px]">
-                                                    {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-                                                </span>
-                                            </div>
-                                            {(user && profile?.username === comment.author.username) && (
-                                                <button
-                                                    onClick={() => handleDelete(comment.id)}
-                                                    className="text-zinc-700 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-1"
-                                                    disabled={deletingId === comment.id}
-                                                >
-                                                    {deletingId === comment.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
-                                                </button>
-                                            )}
-                                        </div>
-                                        <p className="text-zinc-400 leading-relaxed break-words">
-                                            {comment.content}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))
-                        )}
-                    </div>
-
-                    {/* Input */}
+                <div className="mt-4 space-y-6 border-t border-white/5 pt-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                    {/* Input (Top Level) */}
                     {user ? (
                         <form onSubmit={handleSubmit} className="relative flex gap-2">
                             <input
@@ -166,6 +134,44 @@ export function CommentSection({ ideaId, totalComments }: { ideaId: string, tota
                             <Link href="/login" className="text-orange-500 hover:underline">Sign in</Link> to join the discussion.
                         </div>
                     )}
+
+                    {/* List */}
+                    <div className="space-y-6 max-h-[500px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-zinc-800">
+                        {loading ? (
+                            <div className="flex justify-center py-4 text-zinc-600">
+                                <Loader2 size={16} className="animate-spin" />
+                            </div>
+                        ) : comments.length === 0 ? (
+                            <div className="text-center py-8 text-zinc-600 text-sm italic">
+                                No thoughts yet. Be the first to spark a conversation.
+                            </div>
+                        ) : (
+                            topLevelComments.map(comment => (
+                                <CommentItem
+                                    key={comment.id}
+                                    comment={comment}
+                                    replies={getReplies(comment.id)}
+                                    // Passing profile username for ownership logic inside CommentItem if needed
+                                    // But checking onDelete ownership here:
+                                    // Actually, we should probably pass a "canDelete" prop or "isOwner" prop
+                                    currentUserId={profile?.username || undefined}
+                                    ideaId={ideaId}
+                                    onDelete={(id) => setConfirmDeleteId(id)}
+                                    onReplySuccess={refreshComments}
+                                />
+                            ))
+                        )}
+                    </div>
+
+                    <ConfirmationModal
+                        isOpen={!!confirmDeleteId}
+                        title="Delete Comment"
+                        message="Are you sure you want to delete this comment? This cannot be undone."
+                        confirmLabel="Delete"
+                        isDanger
+                        onConfirm={handleDelete}
+                        onCancel={() => setConfirmDeleteId(null)}
+                    />
                 </div>
             )}
         </div>

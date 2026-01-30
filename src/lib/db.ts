@@ -140,6 +140,7 @@ export type Comment = {
     id: string;
     content: string;
     created_at: string;
+    parent_id: string | null;
     author: {
         username: string | null;
         avatar_url: string | null;
@@ -159,6 +160,7 @@ export async function getComments(ideaId: string): Promise<Comment[]> {
         id: row.id,
         content: row.content,
         created_at: row.created_at,
+        parent_id: row.parent_id,
         author: row.profiles
     }));
 }
