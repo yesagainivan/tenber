@@ -4,6 +4,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { calculateVitality } from './mechanics';
+import { getComments } from './db';
 
 async function createClient() {
     const cookieStore = await cookies();
@@ -143,7 +144,23 @@ export async function addComment(ideaId: string, content: string) {
 }
 
 export async function fetchComments(ideaId: string) {
-    // Wrapper around db call for client components
-    const { getComments } = await import('./db');
     return await getComments(ideaId);
+}
+
+export async function deleteComment(commentId: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Unauthorized');
+
+    const { error } = await supabase
+        .from('comments')
+        .delete()
+        .eq('id', commentId)
+        .eq('user_id', user.id); // Redundant due to RLS but good practice
+
+    if (error) {
+        throw new Error('Failed to delete comment');
+    }
+
+    revalidatePath('/');
 }

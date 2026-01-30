@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { MessageSquare, Send, Loader2 } from 'lucide-react';
-import { addComment, fetchComments } from '@/lib/actions';
+import { MessageSquare, Send, Loader2, Trash2 } from 'lucide-react';
+import { addComment, fetchComments, deleteComment } from '@/lib/actions';
 import { Comment } from '@/lib/db';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from './Toast';
 import Link from 'next/link';
+import { formatDistanceToNow } from 'date-fns';
 
 export function CommentSection({ ideaId, totalComments }: { ideaId: string, totalComments?: number }) {
     const { user, profile } = useAuth();
@@ -15,6 +16,7 @@ export function CommentSection({ ideaId, totalComments }: { ideaId: string, tota
     const [comments, setComments] = useState<Comment[]>([]);
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
     const [newComment, setNewComment] = useState('');
     const [hasLoaded, setHasLoaded] = useState(false);
 
@@ -42,12 +44,11 @@ export function CommentSection({ ideaId, totalComments }: { ideaId: string, tota
 
         setSubmitting(true);
         try {
-            // Optimistic update? Maybe simpler to just wait for now.
             await addComment(ideaId, newComment);
 
-            // Create a fake comment object for immediate feedback
+            // Optimistic update
             const tempComment: Comment = {
-                id: Math.random().toString(), // temporary
+                id: Math.random().toString(),
                 content: newComment,
                 created_at: new Date().toISOString(),
                 author: {
@@ -59,13 +60,28 @@ export function CommentSection({ ideaId, totalComments }: { ideaId: string, tota
             setComments(prev => [...prev, tempComment]);
             setNewComment('');
 
-            // Re-fetch in background to get real ID/timestamp
+            // Re-fetch
             fetchComments(ideaId).then(setComments);
 
         } catch (e) {
             addToast('Failed to post comment', 'error');
         } finally {
             setSubmitting(false);
+        }
+    };
+
+    const handleDelete = async (commentId: string) => {
+        if (!confirm('Are you sure you want to delete this comment?')) return;
+
+        setDeletingId(commentId);
+        try {
+            await deleteComment(commentId);
+            setComments(prev => prev.filter(c => c.id !== commentId));
+            addToast('Comment deleted', 'success');
+        } catch (e) {
+            addToast('Failed to delete comment', 'error');
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -93,18 +109,31 @@ export function CommentSection({ ideaId, totalComments }: { ideaId: string, tota
                             </div>
                         ) : (
                             comments.map(comment => (
-                                <div key={comment.id} className="flex gap-3 text-sm">
+                                <div key={comment.id} className="group flex gap-3 text-sm animate-in fade-in duration-300">
                                     <div className="flex-shrink-0 w-6 h-6 rounded-full bg-zinc-800 overflow-hidden mt-1">
                                         {comment.author.avatar_url ? <img src={comment.author.avatar_url} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-zinc-700" />}
                                     </div>
                                     <div className="flex-1 space-y-1">
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-bold text-zinc-300 text-xs">@{comment.author.username || 'anon'}</span>
-                                            <span className="text-zinc-600 text-[10px]">
-                                                {new Date(comment.created_at).toLocaleDateString()}
-                                            </span>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <Link href={comment.author.username ? `/u/${comment.author.username}` : '#'} className="font-bold text-zinc-300 text-xs hover:text-white transition-colors">
+                                                    @{comment.author.username || 'anon'}
+                                                </Link>
+                                                <span className="text-zinc-600 text-[10px]">
+                                                    {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                                                </span>
+                                            </div>
+                                            {(user && profile?.username === comment.author.username) && (
+                                                <button
+                                                    onClick={() => handleDelete(comment.id)}
+                                                    className="text-zinc-700 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-1"
+                                                    disabled={deletingId === comment.id}
+                                                >
+                                                    {deletingId === comment.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                                                </button>
+                                            )}
                                         </div>
-                                        <p className="text-zinc-400 leading-relaxed">
+                                        <p className="text-zinc-400 leading-relaxed break-words">
                                             {comment.content}
                                         </p>
                                     </div>

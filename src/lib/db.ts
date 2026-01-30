@@ -34,7 +34,7 @@ export async function getIdeas(userId?: string): Promise<Idea[]> {
     // For MVP, we calculate "fresh" vitality on read.
     const now = new Date();
 
-    const ideas = data.map((row: any) => {
+    const ideas = data.map((row) => {
         const state: DecayState = {
             total_staked: row.total_staked,
             vitality_at_last_update: row.vitality_at_last_update,
@@ -110,7 +110,7 @@ export async function getUserStakedIdeas(userId: string): Promise<Idea[]> {
     // 2. Map similarly to getIdeas with lazy decay calc
     const now = new Date();
 
-    const ideas = stakes.map((stake: any) => {
+    const ideas = stakes.map((stake) => {
         const row = stake.ideas;
         if (!row) return null;
 
