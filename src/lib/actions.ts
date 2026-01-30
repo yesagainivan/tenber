@@ -118,3 +118,32 @@ export async function updateProfile(formData: FormData) {
     revalidatePath('/settings');
     return { success: true };
 }
+
+export async function addComment(ideaId: string, content: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Unauthorized');
+
+    if (!content || content.trim().length === 0) {
+        throw new Error('Comment cannot be empty');
+    }
+
+    const { error } = await supabase.from('comments').insert({
+        idea_id: ideaId,
+        user_id: user.id,
+        content: content.trim()
+    });
+
+    if (error) {
+        console.error("Comment Error:", error);
+        throw new Error('Failed to post comment');
+    }
+
+    revalidatePath('/'); // Revalidate feed (and ideally specific idea path if we had one)
+}
+
+export async function fetchComments(ideaId: string) {
+    // Wrapper around db call for client components
+    const { getComments } = await import('./db');
+    return await getComments(ideaId);
+}

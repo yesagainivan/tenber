@@ -135,3 +135,30 @@ export async function getUserStakedIdeas(userId: string): Promise<Idea[]> {
 
     return ideas.sort((a, b) => (b.userStake || 0) - (a.userStake || 0)); // Sort by how much THEY staked
 }
+
+export type Comment = {
+    id: string;
+    content: string;
+    created_at: string;
+    author: {
+        username: string | null;
+        avatar_url: string | null;
+    };
+}
+
+export async function getComments(ideaId: string): Promise<Comment[]> {
+    const { data, error } = await supabase
+        .from('comments')
+        .select('*, profiles(username, avatar_url)')
+        .eq('idea_id', ideaId)
+        .order('created_at', { ascending: true });
+
+    if (error || !data) return [];
+
+    return data.map((row: any) => ({
+        id: row.id,
+        content: row.content,
+        created_at: row.created_at,
+        author: row.profiles
+    }));
+}

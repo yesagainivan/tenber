@@ -4,6 +4,7 @@ import { getVitalityStatus, Idea } from '@/lib/mechanics';
 import { Flame } from 'lucide-react';
 import { ConvictionSlider } from './ConvictionSlider';
 import Link from 'next/link';
+import { CommentSection } from './CommentSection';
 
 export type { Idea }; // Re-export for page.tsx
 
@@ -54,27 +55,31 @@ export function IdeaCard({ idea, userBudget, onStake }: IdeaCardProps) {
                 </div>
             </div>
 
-            <div className="mt-6 flex items-center justify-between border-t border-white/5 pt-4">
-                <div className="flex flex-col">
-                    <span className="text-xs text-zinc-500">Total Conviction</span>
-                    <span className="font-mono text-zinc-300">{idea.totalStaked.toFixed(0)} pts</span>
+            <div className="mt-6 flex flex-col gap-4 border-t border-white/5 pt-4">
+                <div className="flex items-center justify-between">
+                    <div className="flex flex-col">
+                        <span className="text-xs text-zinc-500">Total Conviction</span>
+                        <span className="font-mono text-zinc-300">{idea.totalStaked.toFixed(0)} pts</span>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        {/* User's current stake if any */}
+                        {idea.userStake ? (
+                            <div className="text-xs text-emerald-400 font-mono flex items-center gap-1">
+                                You: <span className="font-bold">{idea.userStake}</span>
+                            </div>
+                        ) : null}
+
+                        <ConvictionSlider
+                            ideaId={idea.id}
+                            initialStake={idea.userStake || 0}
+                            userBudget={userBudget}
+                            onStake={onStake}
+                        />
+                    </div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                    {/* User's current stake if any */}
-                    {idea.userStake ? (
-                        <div className="text-xs text-emerald-400 font-mono flex items-center gap-1">
-                            You: <span className="font-bold">{idea.userStake}</span>
-                        </div>
-                    ) : null}
-
-                    <ConvictionSlider
-                        ideaId={idea.id}
-                        initialStake={idea.userStake || 0}
-                        userBudget={userBudget}
-                        onStake={onStake}
-                    />
-                </div>
+                <CommentSection ideaId={idea.id} />
             </div>
         </div>
     );
