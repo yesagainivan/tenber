@@ -5,7 +5,6 @@ import { MessageSquare, Trash2, Loader2, Send, CornerDownRight } from 'lucide-re
 import { Comment } from '@/lib/db';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
-import { ConfirmationModal } from './ConfirmationModal';
 import { addComment } from '@/lib/actions';
 
 interface CommentItemProps {
@@ -28,32 +27,26 @@ export function CommentItem({
     const [isReplying, setIsReplying] = useState(false);
     const [replyContent, setReplyContent] = useState('');
     const [submittingReply, setSubmittingReply] = useState(false);
-    const [confirmDelete, setConfirmDelete] = useState(false);
-    const [deleting, setDeleting] = useState(false);
 
-    const isOwner = currentUserId === comment.author.username; // Note: currentUserId in props seems to be username based on usage in CommentSection, need to verify. 
-    // Actually CommentSection uses: user && profile?.username === comment.author.username. 
-    // Let's pass `isOwner` directly or pass `currentUserProfile`. 
-    // Let's pass `currentUser` object or similar.
-    // Re-checking CommentSection: const { user, profile } = useAuth();
-
-    // Let's simplify props:
-    // isOwner: boolean
+    const isOwner = currentUserId === comment.author.username;
 
     async function handleReply(e: React.FormEvent) {
         e.preventDefault();
         if (!replyContent.trim()) return;
 
+        // Enforce 2-level nesting (YouTube style):
+        // If this comment already has a parent, reply to that parent (become a sibling).
+        // If it's a top-level comment, reply to it (become a child).
+        const targetId = comment.parent_id || comment.id;
+
         setSubmittingReply(true);
         try {
-            await addComment(ideaId, replyContent, comment.id);
+            await addComment(ideaId, replyContent, targetId);
             setReplyContent('');
             setIsReplying(false);
             onReplySuccess();
         } catch (error) {
             console.error(error);
-            // toast handled by parent? No, we should probably have toast here or pass it down.
-            // For now, let's keep it simple.
         } finally {
             setSubmittingReply(false);
         }
@@ -86,13 +79,20 @@ export function CommentItem({
                                 <button
                                     onClick={() => setIsReplying(!isReplying)}
                                     className="text-zinc-600 hover:text-zinc-300 p-1"
+                                    title="Reply"
                                 >
-                                    <MessageSquare size={12} />
+                                    <CornerDownRight size={14} />
                                 </button>
                             )}
-                            {/* We need to pass isOwner correctly. Let's assume currentUserId is the user's ID and we compare with something? 
-                                Actually CommentSection compares username. 
-                            */}
+                            {isOwner && (
+                                <button
+                                    onClick={() => onDelete(comment.id)}
+                                    className="text-zinc-600 hover:text-red-500 p-1"
+                                    title="Delete"
+                                >
+                                    <Trash2 size={12} />
+                                </button>
+                            )}
                         </div>
                     </div>
 

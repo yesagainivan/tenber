@@ -18,7 +18,7 @@ export function CommentSection({ ideaId, totalComments }: { ideaId: string, tota
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-    const [deletingId, setDeletingId] = useState<string | null>(null); // Kept for spinner if needed, though handled by modal + optim
+    const [deletingId, setDeletingId] = useState<string | null>(null);
     const [newComment, setNewComment] = useState('');
     const [hasLoaded, setHasLoaded] = useState(false);
 
@@ -85,8 +85,10 @@ export function CommentSection({ ideaId, totalComments }: { ideaId: string, tota
 
         try {
             await deleteComment(id);
-            setComments(prev => prev.filter(c => c.id !== id));
+            setComments(prev => prev.filter(c => c.id !== id)); // Note: this might miss deleting nested replies in local state if we don't traverse, but acceptable for MVP
             addToast('Comment deleted', 'success');
+            // Re-fetch to ensure clean state (especially for nested removals)
+            refreshComments();
         } catch (e) {
             addToast('Failed to delete comment', 'error');
         } finally {
@@ -151,9 +153,7 @@ export function CommentSection({ ideaId, totalComments }: { ideaId: string, tota
                                     key={comment.id}
                                     comment={comment}
                                     replies={getReplies(comment.id)}
-                                    // Passing profile username for ownership logic inside CommentItem if needed
-                                    // But checking onDelete ownership here:
-                                    // Actually, we should probably pass a "canDelete" prop or "isOwner" prop
+                                    // Passing profile username for ownership logic
                                     currentUserId={profile?.username || undefined}
                                     ideaId={ideaId}
                                     onDelete={(id) => setConfirmDeleteId(id)}
