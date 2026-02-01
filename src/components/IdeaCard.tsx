@@ -45,8 +45,11 @@ export function IdeaCard({ idea, userBudget, currentUserId, onStake }: IdeaCardP
                             </Link>
                         )}
                     </div>
-                    <h3 className="text-xl font-medium text-zinc-100">{idea.title}</h3>
-                    <p className="mt-2 text-zinc-400 text-sm leading-relaxed">{idea.description}</p>
+
+                    <Link href={`/i/${idea.id}`} className="block group-hover:cursor-pointer">
+                        <h3 className="text-xl font-medium text-zinc-100 group-hover:text-orange-400 transition-colors">{idea.title}</h3>
+                        <p className="mt-2 text-zinc-400 text-sm leading-relaxed">{idea.description}</p>
+                    </Link>
                 </div>
 
                 {/* Vitality Indicator */}

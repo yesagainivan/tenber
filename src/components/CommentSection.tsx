@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MessageSquare, Send, Loader2 } from 'lucide-react';
 import { addComment, fetchComments, deleteComment } from '@/lib/actions';
 import { Comment } from '@/lib/db';
@@ -10,16 +10,30 @@ import Link from 'next/link';
 import { ConfirmationModal } from './ConfirmationModal';
 import { CommentItem } from './CommentItem';
 
-export function CommentSection({ ideaId }: { ideaId: string }) {
+export function CommentSection({ ideaId, defaultOpen = false }: { ideaId: string, defaultOpen?: boolean }) {
     const { user, profile } = useAuth();
     const { addToast } = useToast();
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(defaultOpen);
     const [comments, setComments] = useState<Comment[]>([]);
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
     const [newComment, setNewComment] = useState('');
-    const [hasLoaded, setHasLoaded] = useState(false);
+    const [hasLoaded, setHasLoaded] = useState(false); // Start false to trigger useEffect
+
+    // Initial load if defaultOpen
+
+    useEffect(() => {
+        // If defaultOpen is true, we fetch immediately on mount (because hasLoaded is false)
+        // If defaultOpen is false, we wait for toggle
+        if (defaultOpen && !hasLoaded) {
+            setLoading(true);
+            fetchComments(ideaId).then(data => {
+                setComments(data);
+                setHasLoaded(true);
+            }).catch(console.error).finally(() => setLoading(false));
+        }
+    }, [defaultOpen, ideaId, hasLoaded]);
 
     const toggleOpen = async () => {
         const nextState = !isOpen;

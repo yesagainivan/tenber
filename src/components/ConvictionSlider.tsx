@@ -31,7 +31,7 @@ export function ConvictionSlider({ initialStake, userBudget, onStake, disabled =
     };
 
     return (
-        <div className={`flex items-center gap-4 ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div className={`flex flex-wrap items-center gap-4 max-w-full ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
             <div className="flex items-center gap-1.5">
                 {[10, 25, 50].map((amt) => {
                     const disabled = (userBudget + initialStake < amt) || loading;
@@ -57,7 +57,7 @@ export function ConvictionSlider({ initialStake, userBudget, onStake, disabled =
                 })}
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-1 items-center gap-3 min-w-[200px]">
                 <input
                     type="range"
                     min="0"
@@ -65,7 +65,7 @@ export function ConvictionSlider({ initialStake, userBudget, onStake, disabled =
                     value={val}
                     onChange={handleChange}
                     disabled={loading}
-                    className="w-24 sm:w-32 h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 relative z-10"
+                    className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 relative z-10"
                 />
                 <div className="w-8 text-right font-mono text-sm text-zinc-400">
                     {loading ? <Loader2 size={12} className="animate-spin inline" /> : val}

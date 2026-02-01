@@ -12,7 +12,7 @@ If an idea isn't tended, it **decays** and eventually disappears.
 
 ## 🏗 Stack
 
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **Database**: Supabase (PostgreSQL)

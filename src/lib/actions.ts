@@ -4,7 +4,7 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { calculateVitality } from './mechanics';
-import { getComments } from './db';
+
 
 async function createClient() {
     const cookieStore = await cookies();
@@ -200,7 +200,34 @@ export async function addComment(ideaId: string, content: string, parentId?: str
 }
 
 export async function fetchComments(ideaId: string) {
-    return await getComments(ideaId);
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+        .from('comments')
+        .select('*, profiles(username, avatar_url)')
+        .eq('idea_id', ideaId)
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching comments:', error);
+        return [];
+    }
+
+
+    if (!data) return [];
+
+    return data.map((row) => {
+        // Handle missing profile relation gracefully
+        const author = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
+
+        return {
+            id: row.id,
+            content: row.content,
+            created_at: row.created_at,
+            parent_id: row.parent_id,
+            author: author || { username: 'Unknown', avatar_url: null }
+        };
+    });
 }
 
 export async function deleteComment(commentId: string) {
@@ -299,4 +326,56 @@ export async function getIdeas(category?: string, search?: string): Promise<Idea
 
     // 3. Re-sort based on fresh vitality
     return ideas.sort((a, b) => b.vitality - a.vitality);
+}
+
+export async function getIdea(id: string): Promise<Idea | null> {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // 1. Fetch idea + author
+    const { data: row, error } = await supabase
+        .from('ideas')
+        .select('*, profiles!created_by(username, avatar_url)')
+        .eq('id', id)
+        .single();
+
+    if (error || !row) {
+        console.error('Error fetching idea:', error);
+        return null;
+    }
+
+    // 2. Fetch User Stake if logged in
+    let userStake = 0;
+    if (user) {
+        const { data: stake } = await supabase
+            .from('stakes')
+            .select('amount')
+            .eq('user_id', user.id)
+            .eq('idea_id', id)
+            .single();
+
+        if (stake) userStake = stake.amount;
+    }
+
+    // 3. Client-side Lazy Decay (Calculated on Read)
+    // We used the exact same function as the list view, ensuring consistency.
+    const now = new Date();
+    const state = {
+        total_staked: row.total_staked,
+        vitality_at_last_update: row.vitality_at_last_update,
+        last_decay_update: new Date(row.last_decay_update)
+    };
+
+    const freshVitality = calculateVitality(state, now);
+
+    return {
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        category: row.category,
+        vitality: freshVitality,
+        totalStaked: row.total_staked,
+        userStake,
+        author: row.profiles
+    };
 }

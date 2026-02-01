@@ -1,6 +1,6 @@
 # 🗺️ Tenber Roadmap
 
-**Status**: ✅ Phase 1: Core Mechanics (Complete) - Preparing for Deployment
+**Status**: 🚀 Deployed (Phase 2 Complete)
 
 ## Phase 1: The "Campfire" (MVP) - Weeks 1-4
 Focus: Core mechanics of posting, staking, and decay.
@@ -14,10 +14,10 @@ Focus: Core mechanics of posting, staking, and decay.
 
 ## Phase 2: Community & Identity - Weeks 5-8
 Focus: Who is tending the fire?
-- [ ] **User Profiles**: "Reputation" scores based on successful predictions.
-- [ ] **Comments**: Discuss *why* you are staking.
-- [ ] **Categories**: Filter fires by topic.
-- [ ] **Search**: Find specific ideas.
+- [x] **User Profiles**: "Reputation" scores based on successful predictions.
+- [x] **Comments**: Discuss *why* you are staking (Threaded, Optimized).
+- [x] **Categories**: Filter fires by topic.
+- [x] **Search**: Find specific ideas.
 
 ## Phase 3: Ecosystem & Polish - Weeks 9-12
 Focus: Scale and experience.

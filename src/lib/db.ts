@@ -109,7 +109,11 @@ export async function getComments(ideaId: string): Promise<Comment[]> {
         .eq('idea_id', ideaId)
         .order('created_at', { ascending: true });
 
-    if (error || !data) return [];
+    if (error) {
+        console.error('getComments Error:', error);
+        return [];
+    }
+    if (!data) return [];
 
     return data.map((row) => ({
         id: row.id,
