@@ -44,7 +44,7 @@ export function CommentSection({ ideaId, totalComments }: { ideaId: string, tota
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!newComment.trim()) return;
 
@@ -85,9 +85,12 @@ export function CommentSection({ ideaId, totalComments }: { ideaId: string, tota
 
         try {
             await deleteComment(id);
-            setComments(prev => prev.filter(c => c.id !== id)); // Note: this might miss deleting nested replies in local state if we don't traverse, but acceptable for MVP
+
+            // Remove the deleted comment and any replies to it from local state
+            setComments(prev => prev.filter(c => c.id !== id && c.parent_id !== id));
+
             addToast('Comment deleted', 'success');
-            // Re-fetch to ensure clean state (especially for nested removals)
+            // Still re-fetch to ensure absolute sync with DB trigger side effects if any
             refreshComments();
         } catch (e) {
             addToast('Failed to delete comment', 'error');

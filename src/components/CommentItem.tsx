@@ -30,7 +30,7 @@ export function CommentItem({
 
     const isOwner = currentUserId === comment.author.username;
 
-    async function handleReply(e: React.FormEvent) {
+    async function handleReply(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         if (!replyContent.trim()) return;
 
