@@ -33,7 +33,7 @@ export default function Home() {
     useEffect(() => {
         async function load() {
             setLoading(true);
-            const data = await getIdeas(user?.id, selectedCategory, debouncedSearch);
+            const data = await getIdeas(selectedCategory, debouncedSearch);
             setIdeas(data);
 
             if (user) {
@@ -44,13 +44,14 @@ export default function Home() {
             setLoading(false);
         }
         load();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user?.id, selectedCategory, debouncedSearch]);
 
     const handleSuccess = async () => {
         setIsCreateOpen(false);
         setLoading(true);
         // Refresh list
-        const data = await getIdeas(user?.id, selectedCategory, debouncedSearch);
+        const data = await getIdeas(selectedCategory, debouncedSearch);
         setIdeas(data);
 
         if (user) {
@@ -111,7 +112,8 @@ export default function Home() {
                                         className="w-8 h-8 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/30 transition-all"
                                     >
                                         {profile?.avatar_url ? (
-                                            <img src={profile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
+                                            /* eslint-disable-next-line @next/next/no-img-element */
+                                            <img src={profile.avatar_url} alt={profile.username || 'User'} className="w-full h-full rounded-full object-cover" />
                                         ) : (
                                             <UserIcon size={14} />
                                         )}

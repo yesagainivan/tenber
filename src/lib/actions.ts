@@ -1,6 +1,6 @@
 'use server';
 
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { calculateVitality } from './mechanics';
@@ -66,7 +66,7 @@ export async function createIdea(prevState: unknown, formData: FormData): Promis
 
         revalidatePath('/');
         return { success: true };
-    } catch (err) {
+    } catch {
         return { error: 'Unexpected error occurred.' };
     }
 }
@@ -227,7 +227,7 @@ export async function deleteComment(commentId: string) {
 
 import { Idea } from '@/lib/mechanics';
 
-export async function getIdeas(currentUserId_unused?: string, category?: string, search?: string): Promise<Idea[]> {
+export async function getIdeas(category?: string, search?: string): Promise<Idea[]> {
     // Note: currentUserId_unused is preserved for signature compatibility but ignored for security.
     // We derive identity from the session cookie.
 

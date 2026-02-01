@@ -25,6 +25,7 @@ export function ProfileHeader({ username, bio, avatarUrl, reputation, stakedCoun
 
             <div className="w-24 h-24 mx-auto bg-zinc-800 rounded-full flex items-center justify-center border-4 border-zinc-950 shadow-xl overflow-hidden">
                 {avatarUrl ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
                     <img src={avatarUrl} alt={username} className="w-full h-full object-cover" />
                 ) : (
                     <User size={48} className="text-zinc-600" />

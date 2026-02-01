@@ -1,23 +1,19 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 
 interface ConvictionSliderProps {
-    ideaId: string;
     initialStake: number;
     userBudget: number;
     onStake: (amount: number) => Promise<void>;
     disabled?: boolean;
 }
 
-export function ConvictionSlider({ ideaId, initialStake, userBudget, onStake, disabled = false }: ConvictionSliderProps) {
+export function ConvictionSlider({ initialStake, userBudget, onStake, disabled = false }: ConvictionSliderProps) {
     const [val, setVal] = useState(initialStake);
     const [loading, setLoading] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout>(null);
-
-    // Max allowance is what they have left + what they already put in this idea
-    const maxStake = userBudget + initialStake;
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (disabled) return;

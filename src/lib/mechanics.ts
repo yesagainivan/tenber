@@ -1,5 +1,3 @@
-import { supabase } from './supabase';
-
 export interface Idea {
     id: string;
     title: string;

@@ -75,7 +75,6 @@ export function IdeaCard({ idea, userBudget, currentUserId, onStake }: IdeaCardP
                         ) : null}
 
                         <ConvictionSlider
-                            ideaId={idea.id}
                             initialStake={idea.userStake || 0}
                             userBudget={userBudget}
                             onStake={onStake}

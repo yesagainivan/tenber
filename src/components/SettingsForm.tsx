@@ -26,7 +26,7 @@ export function SettingsForm({ initialUsername, initialBio, updateAction }: Sett
             } else {
                 addToast('Profile updated successfully', 'success');
             }
-        } catch (e) {
+        } catch {
             addToast('Something went wrong', 'error');
         } finally {
             setLoading(false);

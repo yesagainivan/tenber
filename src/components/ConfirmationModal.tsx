@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, AlertCircle } from 'lucide-react';
 
@@ -71,8 +71,8 @@ export function ConfirmationModal({
                         <button
                             onClick={onConfirm}
                             className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-white transition-all shadow-lg ${isDanger
-                                    ? 'bg-gradient-to-br from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 shadow-red-900/20'
-                                    : 'bg-zinc-800 hover:bg-zinc-700'
+                                ? 'bg-gradient-to-br from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 shadow-red-900/20'
+                                : 'bg-zinc-800 hover:bg-zinc-700'
                                 }`}
                         >
                             {confirmLabel}

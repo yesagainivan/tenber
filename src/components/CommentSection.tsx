@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { ConfirmationModal } from './ConfirmationModal';
 import { CommentItem } from './CommentItem';
 
-export function CommentSection({ ideaId, totalComments }: { ideaId: string, totalComments?: number }) {
+export function CommentSection({ ideaId }: { ideaId: string }) {
     const { user, profile } = useAuth();
     const { addToast } = useToast();
     const [isOpen, setIsOpen] = useState(false);
@@ -18,7 +18,6 @@ export function CommentSection({ ideaId, totalComments }: { ideaId: string, tota
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-    const [deletingId, setDeletingId] = useState<string | null>(null);
     const [newComment, setNewComment] = useState('');
     const [hasLoaded, setHasLoaded] = useState(false);
 
@@ -70,7 +69,8 @@ export function CommentSection({ ideaId, totalComments }: { ideaId: string, tota
             // Re-fetch
             refreshComments();
 
-        } catch (e) {
+            refreshComments();
+        } catch {
             addToast('Failed to post comment', 'error');
         } finally {
             setSubmitting(false);
@@ -81,7 +81,6 @@ export function CommentSection({ ideaId, totalComments }: { ideaId: string, tota
         if (!confirmDeleteId) return;
         const id = confirmDeleteId;
         setConfirmDeleteId(null);
-        setDeletingId(id);
 
         try {
             await deleteComment(id);
@@ -92,10 +91,8 @@ export function CommentSection({ ideaId, totalComments }: { ideaId: string, tota
             addToast('Comment deleted', 'success');
             // Still re-fetch to ensure absolute sync with DB trigger side effects if any
             refreshComments();
-        } catch (e) {
+        } catch {
             addToast('Failed to delete comment', 'error');
-        } finally {
-            setDeletingId(null);
         }
     };
 
