@@ -11,10 +11,11 @@ export type { Idea }; // Re-export for page.tsx
 interface IdeaCardProps {
     idea: Idea;
     userBudget: number;
+    currentUserId?: string;
     onStake: (amount: number) => Promise<void>;
 }
 
-export function IdeaCard({ idea, userBudget, onStake }: IdeaCardProps) {
+export function IdeaCard({ idea, userBudget, currentUserId, onStake }: IdeaCardProps) {
     const status = getVitalityStatus(idea.vitality);
 
     const statusColors = {
@@ -64,7 +65,7 @@ export function IdeaCard({ idea, userBudget, onStake }: IdeaCardProps) {
 
                     <div className="flex items-center gap-4">
                         {/* User's current stake if any */}
-                        {idea.userStake ? (
+                        {currentUserId && idea.userStake ? (
                             <div className="text-xs text-emerald-400 font-mono flex items-center gap-1">
                                 You: <span className="font-bold">{idea.userStake}</span>
                             </div>
@@ -75,6 +76,7 @@ export function IdeaCard({ idea, userBudget, onStake }: IdeaCardProps) {
                             initialStake={idea.userStake || 0}
                             userBudget={userBudget}
                             onStake={onStake}
+                            disabled={!currentUserId}
                         />
                     </div>
                 </div>

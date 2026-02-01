@@ -8,9 +8,10 @@ interface ConvictionSliderProps {
     initialStake: number;
     userBudget: number;
     onStake: (amount: number) => Promise<void>;
+    disabled?: boolean;
 }
 
-export function ConvictionSlider({ ideaId, initialStake, userBudget, onStake }: ConvictionSliderProps) {
+export function ConvictionSlider({ ideaId, initialStake, userBudget, onStake, disabled = false }: ConvictionSliderProps) {
     const [val, setVal] = useState(initialStake);
     const [loading, setLoading] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout>(null);
@@ -19,6 +20,7 @@ export function ConvictionSlider({ ideaId, initialStake, userBudget, onStake }: 
     const maxStake = userBudget + initialStake;
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (disabled) return;
         const newValue = parseInt(e.target.value);
         setVal(newValue);
 
@@ -33,7 +35,7 @@ export function ConvictionSlider({ ideaId, initialStake, userBudget, onStake }: 
     };
 
     return (
-        <div className="flex items-center gap-4">
+        <div className={`flex items-center gap-4 ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
             <div className="flex items-center gap-1.5">
                 {[10, 25, 50].map((amt) => {
                     const disabled = (userBudget + initialStake < amt) || loading;

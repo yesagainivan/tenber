@@ -167,3 +167,83 @@ export async function deleteComment(commentId: string) {
 
     revalidatePath('/');
 }
+
+// -----------------------------------------------------------------------------
+// Server Actions for Data Fetching (Secure & Consistent Time)
+// -----------------------------------------------------------------------------
+
+import { Idea } from '@/lib/mechanics';
+
+export async function getIdeas(currentUserId_unused?: string, category?: string, search?: string): Promise<Idea[]> {
+    // Note: currentUserId_unused is preserved for signature compatibility but ignored for security.
+    // We derive identity from the session cookie.
+
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // 1. Fetch raw ideas from DB
+    let query = supabase
+        .from('ideas')
+        .select('*, profiles!created_by(username, avatar_url)')
+        .order('current_vitality', { ascending: false });
+
+    if (category && category !== 'All') {
+        query = query.eq('category', category);
+    }
+
+    if (search && search.trim()) {
+        const term = `%${search.trim()}%`;
+        query = query.or(`title.ilike.${term},description.ilike.${term}`);
+    }
+
+    const { data: ideasData, error } = await query;
+
+    if (error) {
+        console.error('Error fetching ideas:', error);
+        return [];
+    }
+
+    // 1.5 Fetch User Stakes if logged in
+    let userStakes: Record<string, number> = {};
+    if (user) {
+        const { data: stakes } = await supabase
+            .from('stakes')
+            .select('idea_id, amount')
+            .eq('user_id', user.id);
+
+        if (stakes) {
+            stakes.forEach(s => {
+                userStakes[s.idea_id] = s.amount;
+            });
+        }
+    }
+
+    // 2. Server-side Lazy Decay Calculation
+    // Uses server time to prevent client drift.
+    // Logic remains "fresh on read".
+    const now = new Date();
+
+    const ideas = ideasData.map((row) => {
+        const state = {
+            total_staked: row.total_staked,
+            vitality_at_last_update: row.vitality_at_last_update,
+            last_decay_update: new Date(row.last_decay_update)
+        };
+
+        const freshVitality = calculateVitality(state, now);
+
+        return {
+            id: row.id,
+            title: row.title,
+            description: row.description,
+            category: row.category,
+            vitality: freshVitality,
+            totalStaked: row.total_staked,
+            userStake: userStakes[row.id] || 0,
+            author: row.profiles
+        };
+    });
+
+    // 3. Re-sort based on fresh vitality
+    return ideas.sort((a, b) => b.vitality - a.vitality);
+}

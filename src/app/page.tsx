@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Idea, IdeaCard } from '@/components/IdeaCard';
 import { Flame, Loader2, LogIn, LogOut, User as UserIcon, Plus } from 'lucide-react';
-import { getIdeas, getRemainingBudget } from '@/lib/db';
-import { stakeIdea } from '@/lib/actions'; // Import action
+import { getRemainingBudget } from '@/lib/db';
+import { stakeIdea, getIdeas } from '@/lib/actions'; // Import action
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/Toast';
 import Link from 'next/link';
@@ -19,13 +19,21 @@ export default function Home() {
     const [loading, setLoading] = useState(true);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState('All');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
 
     const categories = ['All', 'Tech', 'Art', 'Society', 'Philosophy', 'Random', 'Other'];
+
+    // Debounce search
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     useEffect(() => {
         async function load() {
             setLoading(true);
-            const data = await getIdeas(user?.id, selectedCategory);
+            const data = await getIdeas(user?.id, selectedCategory, debouncedSearch);
             setIdeas(data);
 
             if (user) {
@@ -36,13 +44,13 @@ export default function Home() {
             setLoading(false);
         }
         load();
-    }, [user?.id, selectedCategory]); // Reload when user or category changes
+    }, [user?.id, selectedCategory, debouncedSearch]);
 
     const handleSuccess = async () => {
         setIsCreateOpen(false);
         setLoading(true);
         // Refresh list
-        const data = await getIdeas(user?.id, selectedCategory);
+        const data = await getIdeas(user?.id, selectedCategory, debouncedSearch);
         setIdeas(data);
 
         if (user) {
@@ -59,7 +67,7 @@ export default function Home() {
             await stakeIdea(id, amount);
             // Optimistic update or refetch?
             // Re-fetch for accuracy for now (MVP)
-            const data = await getIdeas(user?.id, selectedCategory);
+            const data = await getIdeas(user?.id, selectedCategory, debouncedSearch);
             setIdeas(data);
 
             if (user) {
@@ -129,10 +137,20 @@ export default function Home() {
 
             {/* Feed */}
             <div className="max-w-3xl mx-auto px-6 py-12 space-y-8">
-                <div className="flex items-end justify-between">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                     <div className="space-y-2">
                         <h1 className="text-3xl font-bold">Top Conviction</h1>
                         <p className="text-zinc-500">Ideas are ranked by their current vitality. Tend to what matters.</p>
+                    </div>
+
+                    <div className="relative w-full md:w-64">
+                        <input
+                            type="text"
+                            placeholder="Search ideas..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 pl-3 pr-4 text-sm focus:outline-none focus:border-orange-500/50 transition-all placeholder:text-zinc-600"
+                        />
                     </div>
                 </div>
 
@@ -167,6 +185,7 @@ export default function Home() {
                                 key={idea.id}
                                 idea={idea}
                                 userBudget={budget}
+                                currentUserId={user?.id}
                                 onStake={(amt) => handleStake(idea.id, amt)}
                             />
                         ))

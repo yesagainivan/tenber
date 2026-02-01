@@ -4,6 +4,7 @@ export interface Idea {
     id: string;
     title: string;
     description: string;
+    category: string;
     vitality: number;
     totalStaked: number;
     userStake?: number;
