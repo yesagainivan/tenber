@@ -32,14 +32,23 @@ export type Profile = {
 }
 
 export async function getProfileByUsername(username: string): Promise<Profile | null> {
-    const { data, error } = await supabase
+    const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('username', username)
         .single();
 
-    if (error) return null;
-    return data;
+    if (error || !profile) return null;
+
+    // Calculate Reputation (Sum of Active Stakes on their ideas)
+    const { data: ideas } = await supabase
+        .from('ideas')
+        .select('total_staked')
+        .eq('created_by', profile.id);
+
+    const reputation = ideas?.reduce((sum, idea) => sum + idea.total_staked, 0) || 0;
+
+    return { ...profile, reputation };
 }
 
 export async function getUserStakedIdeas(userId: string): Promise<Idea[]> {

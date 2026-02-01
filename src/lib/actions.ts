@@ -89,7 +89,60 @@ export async function stakeIdea(ideaId: string, amount: number) {
         throw new Error(rpcError.message || 'Staking failed');
     }
 
+    // Fetch the specific updated idea to return to client (avoids full refetch)
+    // We reuse the logic from getIdeas but for a single ID
+    // Note: This is efficient because we drive the UI state update directly
+
+    // 1. Fetch updated row
+    const { data: row } = await supabase
+        .from('ideas')
+        .select('*, profiles!created_by(username, avatar_url)')
+        .eq('id', ideaId)
+        .single();
+
+    if (!row) throw new Error('Idea not found after staking');
+
+    // 2. Fetch User Stake for this idea
+    const { data: stake } = await supabase
+        .from('stakes')
+        .select('amount')
+        .eq('user_id', user.id)
+        .eq('idea_id', ideaId)
+        .single();
+
+    // 3. Calculate Decay
+    const now = new Date();
+    const state = {
+        total_staked: row.total_staked,
+        vitality_at_last_update: row.vitality_at_last_update,
+        last_decay_update: new Date(row.last_decay_update)
+    };
+    const freshVitality = calculateVitality(state, now);
+
+    const updatedIdea: Idea = {
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        category: row.category,
+        vitality: freshVitality,
+        totalStaked: row.total_staked,
+        userStake: stake?.amount || 0,
+        author: row.profiles
+    };
+
+    // 4. Calculate Budget
+    const remainingBudget = await getRemainingBudget(user.id);
+
     revalidatePath('/');
+    return { success: true, idea: updatedIdea, budget: remainingBudget };
+}
+
+// Helper for internal use if needed (duplicating getRemainingBudget logic for scope)
+async function getRemainingBudget(userId: string): Promise<number> {
+    const supabase = await createClient();
+    const { data: stakes } = await supabase.from('stakes').select('amount').eq('user_id', userId);
+    const used = stakes?.reduce((sum, s) => sum + s.amount, 0) || 0;
+    return Math.max(0, 100 - used);
 }
 
 export async function updateProfile(formData: FormData) {

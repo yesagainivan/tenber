@@ -122,7 +122,7 @@ export function CommentSection({ ideaId, totalComments }: { ideaId: string, tota
                                 type="text"
                                 value={newComment}
                                 onChange={e => setNewComment(e.target.value)}
-                                placeholder="Add to the discussion..."
+                                placeholder="Explain your stake... Why does this idea matter?"
                                 className="w-full bg-zinc-900/50 border border-zinc-800 rounded-lg py-2 pl-3 pr-10 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-orange-500/50 transition-all"
                                 disabled={submitting}
                             />

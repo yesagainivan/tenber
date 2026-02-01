@@ -57,7 +57,7 @@ export function IdeaCard({ idea, userBudget, currentUserId, onStake }: IdeaCardP
             </div>
 
             <div className="mt-6 flex flex-col gap-4 border-t border-white/5 pt-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex flex-col">
                         <span className="text-xs text-zinc-500">Total Conviction</span>
                         <span className="font-mono text-zinc-300">{idea.totalStaked.toFixed(0)} pts</span>

@@ -64,16 +64,17 @@ export default function Home() {
 
     const handleStake = async (id: string, amount: number) => {
         try {
-            await stakeIdea(id, amount);
-            // Optimistic update or refetch?
-            // Re-fetch for accuracy for now (MVP)
-            const data = await getIdeas(user?.id, selectedCategory, debouncedSearch);
-            setIdeas(data);
+            const result = await stakeIdea(id, amount);
 
-            if (user) {
-                const b = await getRemainingBudget(user.id);
-                setBudget(b);
-            }
+            // Optimized Update:
+            // 1. Update the specific idea in the list
+            setIdeas(current => current.map(idea =>
+                idea.id === id ? result.idea : idea
+            ).sort((a, b) => b.vitality - a.vitality)); // Re-sort locally if needed
+
+            // 2. Update budget
+            setBudget(result.budget);
+
         } catch (e: any) {
             console.error(e);
             addToast(e.message || "Failed to stake", 'error');
