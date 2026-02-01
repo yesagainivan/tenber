@@ -75,9 +75,9 @@ export default function Home() {
             // 2. Update budget
             setBudget(result.budget);
 
-        } catch (e: any) {
+        } catch (e: unknown) {
             console.error(e);
-            addToast(e.message || "Failed to stake", 'error');
+            addToast((e as Error).message || "Failed to stake", 'error');
         }
     };
 

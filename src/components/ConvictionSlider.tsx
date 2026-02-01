@@ -45,7 +45,7 @@ export function ConvictionSlider({ ideaId, initialStake, userBudget, onStake, di
                             onClick={() => {
                                 const newVal = amt;
                                 setVal(newVal);
-                                handleChange({ target: { value: newVal.toString() } } as any);
+                                handleChange({ target: { value: newVal.toString() } } as unknown as React.ChangeEvent<HTMLInputElement>);
                             }}
                             disabled={disabled}
                             className={`

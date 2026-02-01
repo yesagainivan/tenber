@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
@@ -10,7 +10,7 @@ interface AuthContextType {
     session: Session | null;
     loading: boolean;
     profile: { username: string | null; avatar_url: string | null } | null;
-    signIn: (email: string) => Promise<any>;
+    signIn: (email: string) => Promise<{ data: { session: Session | null; user: User | null } | null; error: AuthError | null }>;
     signOut: () => Promise<void>;
 }
 
@@ -23,6 +23,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const router = useRouter();
 
     const [profile, setProfile] = useState<{ username: string | null; avatar_url: string | null } | null>(null);
+
+    const fetchProfile = async (userId: string) => {
+        const { data } = await supabase
+            .from('profiles')
+            .select('username, avatar_url')
+            .eq('id', userId)
+            .single();
+        setProfile(data);
+        setLoading(false);
+    };
 
     useEffect(() => {
         // 1. Get initial session
@@ -46,16 +56,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         return () => subscription.unsubscribe();
     }, []);
-
-    const fetchProfile = async (userId: string) => {
-        const { data } = await supabase
-            .from('profiles')
-            .select('username, avatar_url')
-            .eq('id', userId)
-            .single();
-        setProfile(data);
-        setLoading(false);
-    };
 
     const signIn = async (email: string) => {
         // Using Magic Link for MVP (Simplest, no password management)

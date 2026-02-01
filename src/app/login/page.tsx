@@ -18,7 +18,9 @@ function LoginForm() {
     useEffect(() => {
         const error = searchParams.get('error');
         if (error) {
-            setMessage({ type: 'error', text: 'Authentication failed. Please try again.' });
+            setTimeout(() => {
+                setMessage({ type: 'error', text: 'Authentication failed. Please try again.' });
+            }, 0);
         }
     }, [searchParams]);
 
@@ -79,8 +81,8 @@ function LoginForm() {
                 {/* Messages */}
                 {message && (
                     <div className={`mt-6 p-4 rounded-lg text-sm border ${message.type === 'success'
-                            ? 'bg-emerald-950/30 border-emerald-900 text-emerald-400'
-                            : 'bg-red-950/30 border-red-900 text-red-400'
+                        ? 'bg-emerald-950/30 border-emerald-900 text-emerald-400'
+                        : 'bg-red-950/30 border-red-900 text-red-400'
                         }`}>
                         {message.text}
                     </div>

@@ -32,8 +32,10 @@ export function IdeaCard({ idea, userBudget, currentUserId, onStake }: IdeaCardP
 
             <div className="relative flex justify-between items-start gap-4">
                 <div className="flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="text-xl font-medium text-zinc-100">{idea.title}</h3>
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-white/5 text-zinc-500 border border-white/5">
+                            {idea.category}
+                        </span>
                         {idea.author?.username && (
                             <Link
                                 href={`/u/${idea.author.username}`}
@@ -43,6 +45,7 @@ export function IdeaCard({ idea, userBudget, currentUserId, onStake }: IdeaCardP
                             </Link>
                         )}
                     </div>
+                    <h3 className="text-xl font-medium text-zinc-100">{idea.title}</h3>
                     <p className="mt-2 text-zinc-400 text-sm leading-relaxed">{idea.description}</p>
                 </div>
 

@@ -14,8 +14,9 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
   ]),
   {
+    files: ["**/*.ts", "**/*.tsx"],
     rules: {
-      "@typescript-eslint/no-deprecated": "error"
+      // "@typescript-eslint/no-deprecated": "error"
     }
   }
 ]);

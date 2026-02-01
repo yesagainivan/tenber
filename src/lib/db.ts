@@ -111,7 +111,7 @@ export async function getComments(ideaId: string): Promise<Comment[]> {
 
     if (error || !data) return [];
 
-    return data.map((row: any) => ({
+    return data.map((row) => ({
         id: row.id,
         content: row.content,
         created_at: row.created_at,

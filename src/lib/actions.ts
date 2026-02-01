@@ -32,7 +32,7 @@ async function createClient() {
     );
 }
 
-export async function createIdea(prevState: any, formData: FormData): Promise<{ error?: string; success?: boolean }> {
+export async function createIdea(prevState: unknown, formData: FormData): Promise<{ error?: string; success?: boolean }> {
     try {
         const supabase = await createClient();
 
@@ -257,7 +257,7 @@ export async function getIdeas(currentUserId_unused?: string, category?: string,
     }
 
     // 1.5 Fetch User Stakes if logged in
-    let userStakes: Record<string, number> = {};
+    const userStakes: Record<string, number> = {};
     if (user) {
         const { data: stakes } = await supabase
             .from('stakes')
