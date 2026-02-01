@@ -2,12 +2,18 @@ import { supabase } from './supabase';
 import { calculateVitality, DecayState } from './mechanics';
 import { Idea } from '@/components/IdeaCard';
 
-export async function getIdeas(userId?: string): Promise<Idea[]> {
+export async function getIdeas(userId?: string, category?: string): Promise<Idea[]> {
     // 1. Fetch raw ideas from DB
-    const { data, error } = await supabase
+    let query = supabase
         .from('ideas')
         .select('*, profiles!created_by(username, avatar_url)')
-        .order('current_vitality', { ascending: false }); // Sort by cached/last known
+        .order('current_vitality', { ascending: false });
+
+    if (category && category !== 'All') {
+        query = query.eq('category', category);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
         console.error('Error fetching ideas:', error);

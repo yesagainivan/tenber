@@ -18,11 +18,14 @@ export default function Home() {
     const [budget, setBudget] = useState(0);
     const [loading, setLoading] = useState(true);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState('All');
+
+    const categories = ['All', 'Tech', 'Art', 'Society', 'Philosophy', 'Random', 'Other'];
 
     useEffect(() => {
         async function load() {
             setLoading(true);
-            const data = await getIdeas(user?.id);
+            const data = await getIdeas(user?.id, selectedCategory);
             setIdeas(data);
 
             if (user) {
@@ -33,13 +36,13 @@ export default function Home() {
             setLoading(false);
         }
         load();
-    }, [user?.id]); // Reload when user changes
+    }, [user?.id, selectedCategory]); // Reload when user or category changes
 
     const handleSuccess = async () => {
         setIsCreateOpen(false);
         setLoading(true);
         // Refresh list
-        const data = await getIdeas(user?.id);
+        const data = await getIdeas(user?.id, selectedCategory);
         setIdeas(data);
 
         if (user) {
@@ -56,7 +59,7 @@ export default function Home() {
             await stakeIdea(id, amount);
             // Optimistic update or refetch?
             // Re-fetch for accuracy for now (MVP)
-            const data = await getIdeas(user?.id);
+            const data = await getIdeas(user?.id, selectedCategory);
             setIdeas(data);
 
             if (user) {
@@ -126,9 +129,27 @@ export default function Home() {
 
             {/* Feed */}
             <div className="max-w-3xl mx-auto px-6 py-12 space-y-8">
-                <div className="space-y-2">
-                    <h1 className="text-3xl font-bold">Top Conviction</h1>
-                    <p className="text-zinc-500">Ideas are ranked by their current vitality. Tend to what matters.</p>
+                <div className="flex items-end justify-between">
+                    <div className="space-y-2">
+                        <h1 className="text-3xl font-bold">Top Conviction</h1>
+                        <p className="text-zinc-500">Ideas are ranked by their current vitality. Tend to what matters.</p>
+                    </div>
+                </div>
+
+                {/* Categories */}
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                    {categories.map(cat => (
+                        <button
+                            key={cat}
+                            onClick={() => setSelectedCategory(cat)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${selectedCategory === cat
+                                ? 'bg-orange-500 text-white'
+                                : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
+                                }`}
+                        >
+                            {cat}
+                        </button>
+                    ))}
                 </div>
 
                 <div className="grid gap-4">

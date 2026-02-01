@@ -43,6 +43,7 @@ export async function createIdea(prevState: any, formData: FormData): Promise<{ 
 
         const title = formData.get('title') as string;
         const description = formData.get('description') as string;
+        const category = (formData.get('category') as string) || 'Random';
 
         if (!title || title.length < 3) {
             return { error: 'Title must be at least 3 characters.' };
@@ -51,6 +52,7 @@ export async function createIdea(prevState: any, formData: FormData): Promise<{ 
         const { error } = await supabase.from('ideas').insert({
             title,
             description,
+            category,
             created_by: user.id,
             current_vitality: 100.0,
             vitality_at_last_update: 100.0,

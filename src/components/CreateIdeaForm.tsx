@@ -46,6 +46,25 @@ export function CreateIdeaForm({ onSuccess }: CreateIdeaFormProps) {
             </div>
 
             <div className="space-y-2">
+                <label htmlFor="category" className="text-sm font-medium text-zinc-300">
+                    Category
+                </label>
+                <select
+                    id="category"
+                    name="category"
+                    className="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-100 focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all appearance-none"
+                    defaultValue="Random"
+                >
+                    <option value="Tech">Tech</option>
+                    <option value="Art">Art</option>
+                    <option value="Society">Society</option>
+                    <option value="Philosophy">Philosophy</option>
+                    <option value="Random">Random</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div className="space-y-2">
                 <label htmlFor="description" className="text-sm font-medium text-zinc-300">
                     Why does it matter?
                 </label>
