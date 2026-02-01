@@ -43,7 +43,7 @@ export function CommentSection({ ideaId }: { ideaId: string }) {
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!newComment.trim()) return;
 

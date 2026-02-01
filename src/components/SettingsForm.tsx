@@ -14,7 +14,7 @@ export function SettingsForm({ initialUsername, initialBio, updateAction }: Sett
     const [loading, setLoading] = useState(false);
     const { addToast } = useToast();
 
-    async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    async function handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
         event.preventDefault();
         setLoading(true);
         const formData = new FormData(event.currentTarget);

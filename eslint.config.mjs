@@ -15,8 +15,13 @@ const eslintConfig = defineConfig([
   ]),
   {
     files: ["**/*.ts", "**/*.tsx"],
+    languageOptions: {
+      parserOptions: {
+        project: "./tsconfig.json"
+      }
+    },
     rules: {
-      // "@typescript-eslint/no-deprecated": "error"
+      "@typescript-eslint/no-deprecated": "error"
     }
   }
 ]);
