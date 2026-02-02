@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Idea, IdeaCard } from '@/components/IdeaCard';
 import { Loader2 } from 'lucide-react';
 import { getRemainingBudget } from '@/lib/db';
@@ -21,6 +21,9 @@ export default function Home() {
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
 
     const categories = ['All', 'Tech', 'Art', 'Society', 'Philosophy', 'Random', 'Other'];
 
@@ -32,9 +35,14 @@ export default function Home() {
 
     useEffect(() => {
         async function load() {
-            setLoading(true);
-            const data = await getIdeas(selectedCategory, debouncedSearch);
+            setLoading(true); // Initial load
+            setPage(1);
+            setHasMore(true);
+
+            const data = await getIdeas(selectedCategory, debouncedSearch, 1);
             setIdeas(data);
+
+            if (data.length < 20) setHasMore(false);
 
             if (user) {
                 const b = await getRemainingBudget(user.id);
@@ -46,6 +54,21 @@ export default function Home() {
         load();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user?.id, selectedCategory, debouncedSearch]);
+
+    const handleLoadMore = async () => {
+        if (loadingMore || !hasMore) return;
+        setLoadingMore(true);
+        const nextPage = page + 1;
+        const newIdeas = await getIdeas(selectedCategory, debouncedSearch, nextPage);
+
+        if (newIdeas.length < 20) setHasMore(false);
+
+        if (newIdeas.length > 0) {
+            setIdeas(prev => [...prev, ...newIdeas]);
+            setPage(nextPage);
+        }
+        setLoadingMore(false);
+    };
 
     const handleSuccess = async () => {
         setIsCreateOpen(false);
@@ -63,7 +86,7 @@ export default function Home() {
     };
 
 
-    const handleStake = async (id: string, amount: number) => {
+    const handleStake = useCallback(async (id: string, amount: number) => {
         try {
             const result = await stakeIdea(id, amount);
 
@@ -80,7 +103,7 @@ export default function Home() {
             console.error(e);
             addToast((e as Error).message || "Failed to stake", 'error');
         }
-    };
+    }, [addToast]);
 
     return (
         <main className="min-h-screen bg-zinc-950 text-zinc-100 font-sans selection:bg-orange-500/30">
@@ -144,6 +167,22 @@ export default function Home() {
                         ))
                     )}
                 </div>
+
+                {hasMore && !loading && ideas.length > 0 && (
+                    <div className="flex justify-center pt-4 pb-8">
+                        <button
+                            onClick={handleLoadMore}
+                            disabled={loadingMore}
+                            className="px-6 py-2 bg-zinc-900 border border-zinc-800 rounded-full text-sm text-zinc-400 hover:text-white hover:border-zinc-700 transition-all disabled:opacity-50"
+                        >
+                            {loadingMore ? (
+                                <span className="flex items-center gap-2">
+                                    <Loader2 size={14} className="animate-spin" /> Loading...
+                                </span>
+                            ) : "Load More Ideas"}
+                        </button>
+                    </div>
+                )}
             </div>
 
             <Modal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Kindle a New Idea">

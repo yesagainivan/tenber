@@ -304,7 +304,7 @@ export async function deleteIdea(ideaId: string) {
 
 import { Idea } from '@/lib/mechanics';
 
-export async function getIdeas(category?: string, search?: string): Promise<Idea[]> {
+export async function getIdeas(category?: string, search?: string, page: number = 1, limit: number = 20): Promise<Idea[]> {
     // Note: currentUserId_unused is preserved for signature compatibility but ignored for security.
     // We derive identity from the session cookie.
 
@@ -312,10 +312,14 @@ export async function getIdeas(category?: string, search?: string): Promise<Idea
     const { data: { user } } = await supabase.auth.getUser();
 
     // 1. Fetch raw ideas from DB
+    const start = (page - 1) * limit;
+    const end = start + limit - 1;
+
     let query = supabase
         .from('ideas')
         .select('*, profiles!created_by(username, avatar_url)')
-        .order('current_vitality', { ascending: false });
+        .order('current_vitality', { ascending: false })
+        .range(start, end);
 
     if (category && category !== 'All') {
         query = query.eq('category', category);
@@ -335,11 +339,13 @@ export async function getIdeas(category?: string, search?: string): Promise<Idea
 
     // 1.5 Fetch User Stakes if logged in
     const userStakes: Record<string, number> = {};
-    if (user) {
+    if (user && ideasData.length > 0) {
+        const ideaIds = ideasData.map(i => i.id);
         const { data: stakes } = await supabase
             .from('stakes')
             .select('idea_id, amount')
-            .eq('user_id', user.id);
+            .eq('user_id', user.id)
+            .in('idea_id', ideaIds);
 
         if (stakes) {
             stakes.forEach(s => {
@@ -375,7 +381,7 @@ export async function getIdeas(category?: string, search?: string): Promise<Idea
         };
     });
 
-    // 3. Re-sort based on fresh vitality
+    // 3. Re-sort based on fresh vitality (local sort within the page)
     return ideas.sort((a, b) => b.vitality - a.vitality);
 }
 

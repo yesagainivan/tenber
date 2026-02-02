@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Trash2, Loader2, Send, CornerDownRight } from 'lucide-react';
 import { Comment } from '@/lib/db';
 import Link from 'next/link';
+import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
 import { addComment } from '@/lib/actions';
 import { AuraAvatar } from '@yesagainivan/aura';
@@ -58,8 +59,13 @@ export function CommentItem({
             <div className="flex gap-3 text-sm">
                 <div className="flex-shrink-0 w-6 h-6 rounded-full bg-zinc-800 overflow-hidden mt-1">
                     {comment.author.avatar_url ? (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img src={comment.author.avatar_url} alt={comment.author.username || 'User'} className="w-full h-full object-cover" />
+                        <Image
+                            src={comment.author.avatar_url}
+                            alt={comment.author.username || 'User'}
+                            width={24}
+                            height={24}
+                            className="w-full h-full object-cover"
+                        />
                     ) : (
                         <div className="w-full h-full">
                             <AuraAvatar username={comment.author.username || 'anon'} size={24} />

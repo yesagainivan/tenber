@@ -1,6 +1,7 @@
 import { Settings } from 'lucide-react';
 import Link from 'next/link';
 import { AuraAvatar } from '@yesagainivan/aura';
+import Image from 'next/image';
 
 interface ProfileHeaderProps {
     username: string;
@@ -26,8 +27,13 @@ export function ProfileHeader({ username, bio, avatarUrl, reputation, stakedCoun
 
             <div className="w-24 h-24 mx-auto bg-zinc-800 rounded-full flex items-center justify-center border-4 border-zinc-950 shadow-xl overflow-hidden">
                 {avatarUrl ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img src={avatarUrl} alt={username} className="w-full h-full object-cover" />
+                    <Image
+                        src={avatarUrl}
+                        alt={username}
+                        width={96}
+                        height={96}
+                        className="w-full h-full object-cover"
+                    />
                 ) : (
                     <div className="w-full h-full">
                         <AuraAvatar username={username} size={96} />
@@ -46,11 +52,13 @@ export function ProfileHeader({ username, bio, avatarUrl, reputation, stakedCoun
                 </div>
             </div>
 
-            {bio && (
-                <p className="text-zinc-300 max-w-sm mx-auto leading-relaxed">
-                    {bio}
-                </p>
-            )}
-        </div>
+            {
+                bio && (
+                    <p className="text-zinc-300 max-w-sm mx-auto leading-relaxed">
+                        {bio}
+                    </p>
+                )
+            }
+        </div >
     );
 }

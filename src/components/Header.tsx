@@ -4,6 +4,7 @@ import { Flame, Plus, LogOut, LogIn } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { AuraAvatar } from '@yesagainivan/aura';
+import Image from 'next/image';
 
 interface HeaderProps {
     budget?: number;
@@ -44,8 +45,13 @@ export function Header({ budget = 0, onKindleClick }: HeaderProps) {
                                     className="block w-8 h-8 rounded-full overflow-hidden border border-white/10 hover:border-white/30 transition-all"
                                 >
                                     {profile?.avatar_url ? (
-                                        /* eslint-disable-next-line @next/next/no-img-element */
-                                        <img src={profile.avatar_url} alt={profile.username || 'User'} className="w-full h-full object-cover" />
+                                        <Image
+                                            src={profile.avatar_url}
+                                            alt={profile.username || 'User'}
+                                            width={32}
+                                            height={32}
+                                            className="w-full h-full object-cover"
+                                        />
                                     ) : (
                                         <div className="w-full h-full">
                                             <AuraAvatar username={profile?.username || 'user'} size={32} />

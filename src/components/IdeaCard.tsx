@@ -24,7 +24,7 @@ import { Trash2 } from 'lucide-react';
 import { deleteIdea } from '@/lib/actions';
 
 
-export function IdeaCard({ idea, userBudget, currentUserId, onStake }: IdeaCardProps) {
+export const IdeaCard = React.memo(function IdeaCard({ idea, userBudget, currentUserId, onStake }: IdeaCardProps) {
     const status = getVitalityStatus(idea.vitality);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isDeleted, setIsDeleted] = useState(false);
@@ -152,4 +152,14 @@ export function IdeaCard({ idea, userBudget, currentUserId, onStake }: IdeaCardP
             </div>
         </div>
     );
-}
+}, (prev, next) => {
+    return (
+        prev.idea.id === next.idea.id &&
+        prev.idea.vitality === next.idea.vitality &&
+        prev.idea.totalStaked === next.idea.totalStaked &&
+        prev.idea.userStake === next.idea.userStake &&
+        prev.userBudget === next.userBudget &&
+        prev.currentUserId === next.currentUserId
+        // onStake is handled by useCallback in parent, but function equality check is standard in memo
+    );
+});
