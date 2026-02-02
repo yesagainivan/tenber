@@ -127,6 +127,7 @@ export async function stakeIdea(ideaId: string, amount: number) {
         vitality: freshVitality,
         totalStaked: row.total_staked,
         userStake: stake?.amount || 0,
+        authorId: row.created_by,
         author: row.profiles
     };
 
@@ -248,6 +249,55 @@ export async function deleteComment(commentId: string) {
     revalidatePath('/');
 }
 
+export async function deleteIdea(ideaId: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        return { error: 'Unauthorized' };
+    }
+
+    // Check ownership & Get Username for revalidation
+    const { data: idea } = await supabase
+        .from('ideas')
+        .select('created_by, profiles!created_by(username)')
+        .eq('id', ideaId)
+        .single();
+
+    if (!idea) {
+        return { error: 'Idea not found' };
+    }
+
+    if (idea.created_by !== user.id) {
+        return { error: 'You can only delete your own ideas' };
+    }
+
+
+    // Manual Cascade: Delete stakes first (since DB constraint might block it)
+    await supabase.from('stakes').delete().eq('idea_id', ideaId);
+    // Comments have ON DELETE CASCADE so they should be fine, but we can be safe
+    // await supabase.from('comments').delete().eq('idea_id', ideaId);
+
+    const { error } = await supabase
+        .from('ideas')
+        .delete()
+        .eq('id', ideaId);
+
+    if (error) {
+        console.error('Delete Idea Error:', error);
+        return { error: 'Failed to delete idea' };
+    }
+
+    revalidatePath('/');
+
+    // Type assertion for the joined relationship
+    const author = idea.profiles as unknown as { username: string };
+    if (author && author.username) {
+        revalidatePath(`/u/${author.username}`);
+    }
+    return { success: true };
+}
+
 // -----------------------------------------------------------------------------
 // Server Actions for Data Fetching (Secure & Consistent Time)
 // -----------------------------------------------------------------------------
@@ -320,6 +370,7 @@ export async function getIdeas(category?: string, search?: string): Promise<Idea
             vitality: freshVitality,
             totalStaked: row.total_staked,
             userStake: userStakes[row.id] || 0,
+            authorId: row.created_by,
             author: row.profiles
         };
     });
@@ -376,6 +427,7 @@ export async function getIdea(id: string): Promise<Idea | null> {
         vitality: freshVitality,
         totalStaked: row.total_staked,
         userStake,
+        authorId: row.created_by,
         author: row.profiles
     };
 }

@@ -6,6 +6,7 @@ export interface Idea {
     vitality: number;
     totalStaked: number;
     userStake?: number;
+    authorId?: string;
     author?: {
         username: string | null;
         avatar_url: string | null;

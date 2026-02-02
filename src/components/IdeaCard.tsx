@@ -1,3 +1,4 @@
+'use client';
 
 import React from 'react';
 import { getVitalityStatus, Idea } from '@/lib/mechanics';
@@ -5,6 +6,10 @@ import { Flame } from 'lucide-react';
 import { ConvictionSlider } from './ConvictionSlider';
 import Link from 'next/link';
 import { CommentSection } from './CommentSection';
+import { ConfirmationModal } from './ConfirmationModal';
+import { useState } from 'react';
+import { useToast } from './Toast';
+import { useRouter, usePathname } from 'next/navigation';
 
 export type { Idea }; // Re-export for page.tsx
 
@@ -15,8 +20,40 @@ interface IdeaCardProps {
     onStake: (amount: number) => Promise<void>;
 }
 
+import { Trash2 } from 'lucide-react';
+import { deleteIdea } from '@/lib/actions';
+
+
 export function IdeaCard({ idea, userBudget, currentUserId, onStake }: IdeaCardProps) {
     const status = getVitalityStatus(idea.vitality);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isDeleted, setIsDeleted] = useState(false);
+    const { addToast } = useToast();
+    const router = useRouter();
+    const pathname = usePathname();
+
+    if (isDeleted) return null;
+
+    const handleDelete = async () => {
+        setIsDeleteModalOpen(false);
+        setIsDeleted(true); // Optimistic update
+
+        const result = await deleteIdea(idea.id);
+        if (result?.error) {
+            setIsDeleted(false); // Revert if failed
+            addToast(result.error, 'error');
+        } else {
+            addToast('Idea extinguished.', 'success');
+
+            // Redirect if on the idea page itself
+            if (pathname === `/i/${idea.id}`) {
+                router.push('/');
+            } else {
+                // Refresh to update list
+                router.refresh();
+            }
+        }
+    };
 
     const statusColors = {
         blazing: "text-orange-500 from-orange-500/20 to-orange-500/5",
@@ -29,6 +66,31 @@ export function IdeaCard({ idea, userBudget, currentUserId, onStake }: IdeaCardP
         <div className={`group relative p-6 rounded-xl border border-white/5 bg-zinc-900 overflow-hidden transition-all hover:border-white/10`}>
             {/* Vitality Background Gradient */}
             <div className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none ${statusColors[status]}`} />
+
+            {/* Delete Button (Owner Only) */}
+            {currentUserId && idea.authorId === currentUserId && (
+                <button
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setIsDeleteModalOpen(true);
+                    }}
+                    className="absolute top-4 right-4 z-20 p-2 rounded-full bg-black/50 text-zinc-400 hover:text-red-400 hover:bg-black/70 transition-all opacity-0 group-hover:opacity-100"
+                    title="Delete Idea"
+                >
+                    <Trash2 size={16} />
+                </button>
+            )}
+
+            <ConfirmationModal
+                isOpen={isDeleteModalOpen}
+                title="Extinguish Idea?"
+                message="Are you sure you want to delete this idea forever? This action cannot be undone."
+                confirmLabel="Extinguish"
+                isDanger
+                onConfirm={handleDelete}
+                onCancel={() => setIsDeleteModalOpen(false)}
+            />
 
             <div className="relative flex justify-between items-start gap-4">
                 <div className="flex-1">

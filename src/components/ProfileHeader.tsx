@@ -1,5 +1,4 @@
-'use client';
-import { User, Settings } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import Link from 'next/link';
 import { AuraAvatar } from '@yesagainivan/aura';
 

@@ -51,6 +51,40 @@ export async function getProfileByUsername(username: string): Promise<Profile | 
     return { ...profile, reputation };
 }
 
+export async function getUserCreatedIdeas(userId: string): Promise<Idea[]> {
+    const { data: ideas, error } = await supabase
+        .from('ideas')
+        .select('*, profiles!created_by(username, avatar_url)')
+        .eq('created_by', userId)
+        .order('current_vitality', { ascending: false });
+
+    if (error || !ideas) return [];
+
+    const now = new Date();
+
+    return ideas.map((row) => {
+        const state: DecayState = {
+            total_staked: row.total_staked,
+            vitality_at_last_update: row.vitality_at_last_update,
+            last_decay_update: new Date(row.last_decay_update)
+        };
+
+        const freshVitality = calculateVitality(state, now);
+
+        return {
+            id: row.id,
+            title: row.title,
+            description: row.description,
+            category: row.category,
+            vitality: freshVitality,
+            totalStaked: row.total_staked,
+            userStake: 0, // We aren't fetching the viewer's stake here for now, or could add it if needed
+            authorId: row.created_by,
+            author: row.profiles
+        };
+    });
+}
+
 export async function getUserStakedIdeas(userId: string): Promise<Idea[]> {
     // 1. Get stakes for this user
     const { data: stakes, error } = await supabase
@@ -84,6 +118,7 @@ export async function getUserStakedIdeas(userId: string): Promise<Idea[]> {
             vitality: freshVitality,
             totalStaked: row.total_staked,
             userStake: stake.amount, // The amount this user staked
+            authorId: row.created_by,
             author: row.profiles
         };
     }).filter(Boolean) as Idea[];

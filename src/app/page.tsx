@@ -7,13 +7,12 @@ import { getRemainingBudget } from '@/lib/db';
 import { stakeIdea, getIdeas } from '@/lib/actions'; // Import action
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/Toast';
-import Link from 'next/link';
 import { Modal } from '@/components/Modal';
 import { CreateIdeaForm } from '@/components/CreateIdeaForm';
 import { Header } from '@/components/Header';
 
 export default function Home() {
-    const { user, profile, signOut } = useAuth();
+    const { user } = useAuth();
     const { addToast } = useToast();
     const [ideas, setIdeas] = useState<Idea[]>([]);
     const [budget, setBudget] = useState(0);

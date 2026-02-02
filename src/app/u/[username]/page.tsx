@@ -4,7 +4,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
-import { getProfileByUsername, getUserStakedIdeas } from '@/lib/db';
+import { getProfileByUsername, getUserStakedIdeas, getUserCreatedIdeas } from '@/lib/db';
 import { ProfileHeader } from '@/components/ProfileHeader';
 import { IdeaCard } from '@/components/IdeaCard';
 
@@ -55,6 +55,7 @@ export default async function ProfilePage({ params }: Props) {
     const isOwner = user?.id === profile.id;
 
     const stakedIdeas = await getUserStakedIdeas(profile.id);
+    const createdIdeas = await getUserCreatedIdeas(profile.id);
 
     return (
         <main className="min-h-screen bg-zinc-950 text-zinc-100 font-sans">
@@ -83,14 +84,39 @@ export default async function ProfilePage({ params }: Props) {
                                 <IdeaCard
                                     key={idea.id}
                                     idea={idea}
-                                    userBudget={0} // Read-only view mainly, or we could fetch viewer's budget if we wanted interactivity
-                                    onStake={async () => { 'use server'; /* No-op or require login */ }}
+                                    userBudget={0}
+                                    currentUserId={user?.id}
+                                    onStake={async () => { 'use server'; }}
                                 />
                             ))}
                         </div>
                     ) : (
                         <div className="text-center py-12 text-zinc-600 italic">
                             Not tending any fires yet.
+                        </div>
+                    )}
+                </div>
+
+                <div className="space-y-4">
+                    <h2 className="text-lg font-bold text-zinc-400 uppercase tracking-wider text-xs px-1">
+                        Sparked Ideas
+                    </h2>
+
+                    {createdIdeas.length > 0 ? (
+                        <div className="grid gap-4">
+                            {createdIdeas.map(idea => (
+                                <IdeaCard
+                                    key={idea.id}
+                                    idea={idea}
+                                    userBudget={0}
+                                    currentUserId={user?.id}
+                                    onStake={async () => { 'use server'; }}
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-12 text-zinc-600 italic">
+                            No ideas sparked yet.
                         </div>
                     )}
                 </div>

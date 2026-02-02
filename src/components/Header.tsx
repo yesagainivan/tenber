@@ -1,6 +1,6 @@
 'use client';
 
-import { Flame, Plus, LogOut, User as UserIcon, LogIn } from 'lucide-react';
+import { Flame, Plus, LogOut, LogIn } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { AuraAvatar } from '@yesagainivan/aura';
