@@ -1,5 +1,7 @@
+'use client';
 import { User, Settings } from 'lucide-react';
 import Link from 'next/link';
+import { AuraAvatar } from '@yesagainivan/aura';
 
 interface ProfileHeaderProps {
     username: string;
@@ -28,7 +30,9 @@ export function ProfileHeader({ username, bio, avatarUrl, reputation, stakedCoun
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img src={avatarUrl} alt={username} className="w-full h-full object-cover" />
                 ) : (
-                    <User size={48} className="text-zinc-600" />
+                    <div className="w-full h-full">
+                        <AuraAvatar username={username} size={96} />
+                    </div>
                 )}
             </div>
 

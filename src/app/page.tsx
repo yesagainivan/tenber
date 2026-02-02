@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Idea, IdeaCard } from '@/components/IdeaCard';
-import { Flame, Loader2, LogIn, LogOut, User as UserIcon, Plus } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { getRemainingBudget } from '@/lib/db';
 import { stakeIdea, getIdeas } from '@/lib/actions'; // Import action
 import { useAuth } from '@/context/AuthContext';
@@ -10,6 +10,7 @@ import { useToast } from '@/components/Toast';
 import Link from 'next/link';
 import { Modal } from '@/components/Modal';
 import { CreateIdeaForm } from '@/components/CreateIdeaForm';
+import { Header } from '@/components/Header';
 
 export default function Home() {
     const { user, profile, signOut } = useAuth();
@@ -85,58 +86,8 @@ export default function Home() {
     return (
         <main className="min-h-screen bg-zinc-950 text-zinc-100 font-sans selection:bg-orange-500/30">
             {/* Header */}
-            <header className="sticky top-0 z-10 border-b border-white/5 bg-zinc-950/80 backdrop-blur-md">
-                <div className="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <div className="p-1.5 bg-orange-600 rounded-lg">
-                            <Flame size={20} className="text-white fill-white" />
-                        </div>
-                        <span className="font-bold text-lg tracking-tight">Tenber</span>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        {user ? (
-                            <>
-                                <div className="text-sm text-zinc-400 hidden sm:block">
-                                    Budget: <span className="font-mono text-orange-400 font-bold">{budget}</span>/100
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <button
-                                        onClick={() => setIsCreateOpen(true)}
-                                        className="flex items-center gap-2 px-3 py-1.5 bg-orange-600/10 text-orange-400 hover:bg-orange-600 hover:text-white rounded-lg text-sm font-medium transition-colors cursor-pointer"
-                                    >
-                                        <Plus size={16} /> Kindle Idea
-                                    </button>
-                                    <Link
-                                        href={profile?.username ? `/u/${profile.username}` : "/settings"}
-                                        className="w-8 h-8 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/30 transition-all"
-                                    >
-                                        {profile?.avatar_url ? (
-                                            /* eslint-disable-next-line @next/next/no-img-element */
-                                            <img src={profile.avatar_url} alt={profile.username || 'User'} className="w-full h-full rounded-full object-cover" />
-                                        ) : (
-                                            <UserIcon size={14} />
-                                        )}
-                                    </Link>
-                                    <button
-                                        onClick={() => signOut()}
-                                        className="text-xs text-zinc-500 hover:text-white transition-colors cursor-pointer"
-                                    >
-                                        <LogOut size={16} />
-                                    </button>
-                                </div>
-                            </>
-                        ) : (
-                            <Link
-                                href="/login"
-                                className="flex items-center gap-2 px-4 py-2 bg-zinc-100 hover:bg-white text-zinc-950 rounded-lg text-sm font-bold transition-all"
-                            >
-                                Sign In <LogIn size={14} />
-                            </Link>
-                        )}
-                    </div>
-                </div>
-            </header>
+            {/* Header */}
+            <Header budget={budget} onKindleClick={() => setIsCreateOpen(true)} />
 
             {/* Feed */}
             <div className="max-w-3xl mx-auto px-6 py-12 space-y-8">

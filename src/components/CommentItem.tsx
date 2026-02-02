@@ -6,6 +6,7 @@ import { Comment } from '@/lib/db';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { addComment } from '@/lib/actions';
+import { AuraAvatar } from '@yesagainivan/aura';
 
 interface CommentItemProps {
     comment: Comment;
@@ -60,7 +61,9 @@ export function CommentItem({
                         /* eslint-disable-next-line @next/next/no-img-element */
                         <img src={comment.author.avatar_url} alt={comment.author.username || 'User'} className="w-full h-full object-cover" />
                     ) : (
-                        <div className="w-full h-full bg-zinc-700" />
+                        <div className="w-full h-full">
+                            <AuraAvatar username={comment.author.username || 'anon'} size={24} />
+                        </div>
                     )}
                 </div>
 

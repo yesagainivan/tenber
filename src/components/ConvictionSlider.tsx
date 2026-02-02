@@ -65,7 +65,18 @@ export function ConvictionSlider({ initialStake, userBudget, onStake, disabled =
                     value={val}
                     onChange={handleChange}
                     disabled={loading}
-                    className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-orange-500 hover:accent-orange-400 relative z-10"
+                    className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer relative z-10
+                    [&::-webkit-slider-thumb]:appearance-none
+                    [&::-webkit-slider-thumb]:w-4
+                    [&::-webkit-slider-thumb]:h-4
+                    [&::-webkit-slider-thumb]:rounded-full
+                    [&::-webkit-slider-thumb]:bg-orange-500
+                    [&::-webkit-slider-thumb]:hover:bg-orange-400
+                    [&::-moz-range-thumb]:w-4
+                    [&::-moz-range-thumb]:h-4
+                    [&::-moz-range-thumb]:rounded-full
+                    [&::-moz-range-thumb]:bg-orange-500
+                    [&::-moz-range-thumb]:border-none"
                 />
                 <div className="w-8 text-right font-mono text-sm text-zinc-400">
                     {loading ? <Loader2 size={12} className="animate-spin inline" /> : val}

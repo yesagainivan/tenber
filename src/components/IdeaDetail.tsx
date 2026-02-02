@@ -52,9 +52,10 @@ export function IdeaDetail({ initialIdea, initialBudget, currentUserId }: IdeaDe
                 <ArrowLeft size={16} className="mr-2" /> Back to Feed
             </Link>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Main Layout - Switched to Flex for Safari stability */}
+            <div className="flex flex-col md:flex-row gap-8">
                 {/* Left Col: Main Content */}
-                <div className="md:col-span-2 space-y-8">
+                <div className="w-full md:w-2/3 space-y-8 min-w-0">
                     {/* Header */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-2">
@@ -63,22 +64,20 @@ export function IdeaDetail({ initialIdea, initialBudget, currentUserId }: IdeaDe
                             </span>
                             <span className="text-zinc-600">•</span>
                             <span className="text-zinc-400 font-medium">
-                                Posted by <Link href={`/u/${idea.author?.username}`} className="text-white hover:underline transition-all decoration-orange-500/50 underline-offset-4">@{idea.author?.username}</Link>
+                                Posted by <Link href={`/u/${idea.author?.username}`} className="text-white hover:underline transition-all decoration-orange-500 decoration-wavy underline-offset-4">@{idea.author?.username}</Link>
                             </span>
                         </div>
 
-                        <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight">
+                        <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight break-words">
                             {idea.title}
                         </h1>
 
-                        <p className="text-xl md:text-2xl text-zinc-300 leading-relaxed font-light border-l-2 border-orange-500/50 pl-6 py-2">
-                            {idea.description}
-                        </p>
+                        <div className="pl-6 py-2 border-l-2 border-orange-500/50">
+                            <p className="text-xl md:text-2xl text-zinc-300 leading-relaxed font-light break-words">
+                                {idea.description}
+                            </p>
+                        </div>
                     </div>
-
-                    {/* Meta / Stats for Mobile (Hidden on Desktop?) - Actually keep them here or move? 
-                        Let's put the main visualizations here.
-                    */}
 
                     <div className="p-6 rounded-2xl bg-zinc-900 border border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6">
                         <div className="flex items-center gap-4">
@@ -111,7 +110,7 @@ export function IdeaDetail({ initialIdea, initialBudget, currentUserId }: IdeaDe
                 </div>
 
                 {/* Right Col: Actions (Sticky) */}
-                <div className="md:col-span-1">
+                <div className="w-full md:w-1/3 min-w-0">
                     <div className="sticky top-24 space-y-6">
                         {/* Staking Card */}
                         <div className="p-6 rounded-2xl bg-zinc-900/50 border border-white/5 backdrop-blur-sm space-y-6">
